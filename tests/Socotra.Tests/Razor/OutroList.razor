@@ -1,0 +1,16 @@
+@inherits Panel
+
+<root>
+    @foreach (var item in Items)
+    {
+        <div class="row" @key="item">
+            <Tracked Name=@item />
+        </div>
+    }
+</root>
+
+@code {
+    public List<string> Items { get; } = ["a", "b"];
+
+    protected override int BuildHash() => string.Join(",", Items).GetHashCode();
+}

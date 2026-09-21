@@ -1,0 +1,16 @@
+@inherits Panel
+
+<root>
+    @foreach (var name in Names)
+    {
+        <Card class="card @name">
+            <ChildContent>
+                <label class="name">@name</label>
+            </ChildContent>
+        </Card>
+    }
+</root>
+
+@code {
+    public List<string> Names { get; } = ["first", "second"];
+}

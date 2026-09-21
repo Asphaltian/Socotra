@@ -1,0 +1,31 @@
+@inherits Panel
+
+<root>
+    <Menu @ref="Menu" Text="File">
+        <ChildContent>
+            <Menu @ref="Recent" Text="Recent">
+                <ChildContent>
+                    <Menu Text="a.txt" />
+                </ChildContent>
+            </Menu>
+            @foreach (var item in Items)
+            {
+                <Menu Text=@item Clicked=@(() => Pick(item)) />
+            }
+        </ChildContent>
+    </Menu>
+</root>
+
+@code {
+    public List<string> Items { get; } = ["New", "Open"];
+
+    public Menu? Menu { get; private set; }
+
+    public Menu? Recent { get; private set; }
+
+    public string? Picked { get; private set; }
+
+    private void Pick(string item) => Picked = item;
+
+    protected override int BuildHash() => string.Join('\n', Items).GetHashCode();
+}

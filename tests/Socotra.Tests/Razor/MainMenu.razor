@@ -1,0 +1,34 @@
+@inherits Panel
+
+<root class="menu">
+    <div class="title">Main <span>menu</span></div>
+    <div class="items">
+        @foreach (var item in Items)
+        {
+            <MenuButton Text=@item Selected=@(item == Selected) OnPressed=@(() => Select(item)) class="entry">
+                <ChildContent>
+                    <label class="hint">@item.ToUpperInvariant()</label>
+                </ChildContent>
+            </MenuButton>
+        }
+    </div>
+    @if (Selected is not null)
+    {
+        <label class="status">Selected @Selected</label>
+    }
+    <Panel class="footer" @ref="Footer" onclick=@(() => FooterClicks++)></Panel>
+</root>
+
+@code {
+    public List<string> Items { get; } = ["Start", "Options"];
+
+    public string? Selected { get; set; }
+
+    public Panel? Footer { get; private set; }
+
+    public int FooterClicks { get; private set; }
+
+    private void Select(string item) => Selected = item;
+
+    protected override int BuildHash() => HashCode.Combine(Items.Count, Selected);
+}

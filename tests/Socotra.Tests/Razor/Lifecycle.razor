@@ -1,0 +1,25 @@
+@inherits Panel
+
+<root>
+    @foreach (var item in Items)
+    {
+        <label>@Row(item)</label>
+    }
+    @ChildContent
+</root>
+
+@code {
+    [Parameter] public List<string> Items { get; set; } = [];
+
+    [Parameter] public RenderFragment<string> Row { get; set; } = item => builder => builder.AddContent(0, item);
+
+    public List<string> Calls { get; } = [];
+
+    public TaskCompletionSource? Pending { get; set; }
+
+    protected override void OnParametersSet() => Calls.Add($"set {Items.Count}");
+
+    protected override Task OnParametersSetAsync() => Pending?.Task ?? Task.CompletedTask;
+
+    protected override void OnAfterTreeRender(bool firstTime) => Calls.Add(firstTime ? "first render" : "render");
+}

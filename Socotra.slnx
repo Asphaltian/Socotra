@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Microsoft.AspNetCore.Components/Microsoft.AspNetCore.Components.csproj" />
+    <Project Path="src/Socotra/Socotra.csproj" />
+    <Project Path="src/Socotra.Generator/Socotra.Generator.csproj" />
+    <Project Path="src/Socotra.Razor/Socotra.Razor.csproj" />
+    <Project Path="src/Socotra.Layout/Socotra.Layout.csproj" />
+    <Project Path="src/Socotra.Vulkan/Socotra.Vulkan.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Socotra.Layout.Tests/Socotra.Layout.Tests.csproj" />
+    <Project Path="tests/Socotra.Tests/Socotra.Tests.csproj" />
+    <Project Path="tests/Socotra.Vulkan.Tests/Socotra.Vulkan.Tests.csproj" />
+  </Folder>
+</Solution>

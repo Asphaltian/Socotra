@@ -1,0 +1,12 @@
+@inherits Panel
+
+<root>
+    <SwitchControl Value=@On OnValueChanged=@((bool value) => { On = value; }) />
+    <SliderControl Min=@(0f) Max=@(10f) Step=@(1f) Value=@Level OnValueChanged=@((float value) => { Level = value; }) />
+</root>
+
+@code {
+    public bool On { get; set; } = true;
+
+    public float Level { get; set; } = 4;
+}

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.Numerics" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.23.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Socotra\Socotra.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ShaderSource Include="Shaders\UI.*.slang" />
+    <ShaderEntry Include="Shaders\UI.Box.slang;Shaders\UI.Filter.slang;Shaders\UI.Backdrop.slang;Shaders\UI.DropShadow.slang;Shaders\UI.BorderWrap.slang;Shaders\UI.Downsample.slang" Stages="-entry VertexMain -stage vertex -entry FragmentMain -stage fragment" />
+    <ShaderEntry Include="Shaders\UI.TextRaster.slang" Stages="-fvk-use-entrypoint-name -entry MainCs -stage compute" />
+  </ItemGroup>
+
+  <Target Name="LocateShaders">
+    <ItemGroup>
+      <SPIRVShader Include="@(ShaderEntry->'$(ProjectDir)$(IntermediateOutputPath)%(Filename).spv')" Source="%(FullPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CompileShaders" DependsOnTargets="LocateShaders" Inputs="@(ShaderSource);$(MSBuildProjectFullPath)" Outputs="@(SPIRVShader)">
+    <Exec Command="slangc &quot;%(SPIRVShader.Source)&quot; -target spirv -fvk-use-scalar-layout %(SPIRVShader.Stages) -o &quot;%(SPIRVShader.FullPath)&quot;" />
+  </Target>
+
+  <Target Name="EmbedShaders" BeforeTargets="AssignTargetPaths" DependsOnTargets="CompileShaders">
+    <ItemGroup>
+      <EmbeddedResource Include="@(SPIRVShader)" LogicalName="%(Filename)%(Extension)" />
+      <FileWrites Include="@(SPIRVShader)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

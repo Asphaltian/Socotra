@@ -1,0 +1,17 @@
+@inherits Panel
+
+<root>
+    @foreach (var item in Items)
+    {
+        <label @key="item">@item</label>
+    }
+    <NameField Value:bind=@Name />
+</root>
+
+@code {
+    public List<string> Items { get; } = ["A", "B", "C"];
+
+    public string Name { get; set; } = "Mudkip";
+
+    protected override int BuildHash() => HashCode.Combine(string.Join(",", Items), Name);
+}

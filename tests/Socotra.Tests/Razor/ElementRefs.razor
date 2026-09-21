@@ -1,0 +1,19 @@
+@inherits Panel
+
+<root>
+    @if (Shown)
+    {
+        <div class="picked" @ref="Picked"></div>
+    }
+    <button class="button" @ref="Pressed">Go</button>
+</root>
+
+@code {
+    public bool Shown { get; set; } = true;
+
+    public Panel? Picked { get; set; }
+
+    public Panel? Pressed { get; set; }
+
+    protected override int BuildHash() => Shown.GetHashCode();
+}

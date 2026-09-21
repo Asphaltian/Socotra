@@ -1,0 +1,27 @@
+@inherits Panel
+
+<root>
+    <Lifecycle Items=@Items @ref="Child">
+        <Row Context="context">[@context]</Row>
+        <ChildContent><div class="extra">@Extra</div></ChildContent>
+    </Lifecycle>
+    <div class="async" onclick=@Save>@Saves</div>
+</root>
+
+@code {
+    public List<string> Items { get; set; } = ["a"];
+
+    public string Extra { get; set; } = "x";
+
+    public Lifecycle? Child { get; private set; }
+
+    public int Saves { get; private set; }
+
+    private Task Save()
+    {
+        Saves++;
+        return Task.CompletedTask;
+    }
+
+    protected override int BuildHash() => HashCode.Combine(Items, Extra, Saves);
+}

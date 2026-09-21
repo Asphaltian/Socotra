@@ -1,0 +1,22 @@
+@inherits Panel
+
+@page "/profile/{name}"
+@implements INavigatorPage
+
+<root class="profile">@Name @Tab</root>
+
+@code {
+    public string? Name { get; set; }
+
+    public string? Tab { get; set; }
+
+    public int Opened { get; private set; }
+
+    public int Closed { get; private set; }
+
+    public void OnNavigationOpen() => Opened++;
+
+    public void OnNavigationClose() => Closed++;
+
+    protected override int BuildHash() => HashCode.Combine(Name, Tab);
+}

@@ -1,0 +1,8 @@
+@inherits Panel
+
+<root>@Value</root>
+
+@code {
+    [Parameter] public string Value { get; set; } = "";
+    public void Type(string value) => Value = value;
+}

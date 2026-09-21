@@ -1,0 +1,14 @@
+@inherits Panel
+
+<root>
+    <div class="moving">@Count</div>
+    <split>
+        <div slot="left" class="left-pane"></div>
+    </split>
+</root>
+
+@code {
+    public int Count { get; set; }
+
+    protected override int BuildHash() => Count;
+}

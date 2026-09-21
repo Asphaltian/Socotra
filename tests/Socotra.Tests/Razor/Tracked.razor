@@ -1,0 +1,15 @@
+@inherits Panel
+
+<root>@Name</root>
+
+@code {
+    public static List<string> Deleted { get; } = [];
+
+    [Parameter] public string Name { get; set; } = "";
+
+    public override void Delete(bool immediate = false)
+    {
+        Deleted.Add(Name);
+        base.Delete(immediate);
+    }
+}

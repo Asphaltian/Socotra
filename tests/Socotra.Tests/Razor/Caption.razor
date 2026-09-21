@@ -1,0 +1,11 @@
+@inherits Panel
+
+<root>
+    <label class="caption">@Text</label>
+</root>
+
+@code {
+    public string Text { get; set; } = "first";
+
+    protected override int BuildHash() => Text.GetHashCode();
+}
