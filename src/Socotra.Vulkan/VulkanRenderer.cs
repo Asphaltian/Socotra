@@ -105,7 +105,7 @@ public sealed unsafe partial class VulkanRenderer : IDisposable
         var vulkan12 = new PhysicalDeviceVulkan12Features { SType = StructureType.PhysicalDeviceVulkan12Features, PNext = &dynamicRendering };
         var features = new PhysicalDeviceFeatures2 { SType = StructureType.PhysicalDeviceFeatures2, PNext = &vulkan12 };
         api.GetPhysicalDeviceFeatures2(physicalDevice, &features);
-        return features.Features.SamplerAnisotropy && vulkan12.ScalarBlockLayout && vulkan12.RuntimeDescriptorArray
+        return features.Features.SamplerAnisotropy && vulkan12.ScalarBlockLayout && vulkan12.DescriptorIndexing && vulkan12.RuntimeDescriptorArray
             && vulkan12.ShaderSampledImageArrayNonUniformIndexing && vulkan12.DescriptorBindingPartiallyBound && dynamicRendering.DynamicRendering;
     }
 
@@ -119,6 +119,7 @@ public sealed unsafe partial class VulkanRenderer : IDisposable
         features.SamplerAnisotropy = true;
         vulkan12.SType = StructureType.PhysicalDeviceVulkan12Features;
         vulkan12.ScalarBlockLayout = true;
+        vulkan12.DescriptorIndexing = true;
         vulkan12.RuntimeDescriptorArray = true;
         vulkan12.ShaderSampledImageArrayNonUniformIndexing = true;
         vulkan12.DescriptorBindingPartiallyBound = true;
