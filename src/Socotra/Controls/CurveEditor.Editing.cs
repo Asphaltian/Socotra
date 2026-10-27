@@ -184,7 +184,7 @@ public partial class CurveEditor
         float Slope(int a, int b) => (keys[b].Value - keys[a].Value) / (keys[b].Time - keys[a].Time);
     });
 
-    /// <summary>Sets the incoming or outgoing slope of key <paramref name="index"/> on the active curve. It only applies to <see cref="Curve.HandleMode.Mirrored"/> and <see cref="Curve.HandleMode.Split"/> keys; a mirrored key's other side follows.</summary>
+    /// <summary>Sets the incoming or outgoing slope of key <paramref name="index"/> on the active curve. It only works on <see cref="Curve.HandleMode.Mirrored"/> and <see cref="Curve.HandleMode.Split"/> keys, and the other side of a mirrored key follows along.</summary>
     public void SetTangent(int index, bool incoming, float slope)
     {
         if (index < 0 || index >= ActiveCurveValue.Length || !float.IsFinite(slope))

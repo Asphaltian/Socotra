@@ -18,6 +18,7 @@ struct BackdropConstants
     float Sepia;
     float BlurScale;
     int FrameBufferCopyTextureIndex;
+    int ShapeIndex;
 };
 
 [[vk::binding(0, 2)]] ConstantBuffer<BackdropConstants> Constants;
@@ -58,7 +59,9 @@ float4 FragmentMain(PS_INPUT i) : SV_Target0
 
     float2 boxSize = Constants.Quad.BoxSize;
     float2 boxUv = (i.vTexCoord.xy - 0.5) * (boxSize + 2.0) / max(boxSize, 0.0001) + 0.5;
-    float edge = SdfCoverage(RoundedRectSdfUv(boxUv, boxSize, Constants.CornerRadius, Constants.CornerRadiusV));
+    float edge = SdfCoverage(Constants.ShapeIndex >= 0
+        ? ShapeSdf(boxUv * boxSize, BorderShapeBuffer[Constants.ShapeIndex])
+        : RoundedRectSdfUv(boxUv, boxSize, Constants.CornerRadius, Constants.CornerRadiusV));
     edge *= ScissorCoverage(Constants.PainterScissorIndex, i.vPositionPanelSpace.xy / i.vPositionPanelSpace.w);
     vColor.rgb *= i.vColor.rgb;
     vColor.a = edge * i.vColor.a;

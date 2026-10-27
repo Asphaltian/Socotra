@@ -5,9 +5,13 @@ using VkFilter = Silk.NET.Vulkan.Filter;
 namespace Socotra.Vulkan;
 
 /// <summary>
-/// Draws your UI with Vulkan, on a device you made. Create one per device, then call <see cref="Record"/> each
-/// frame. Before each call, wait until the GPU has finished the commands from <c>framesInFlight</c> calls ago,
-/// and submit them all to one queue, in order. If you draw several lists a frame, count each one as a frame in flight.
+/// <c>VulkanRenderer</c> draws your UI with Vulkan, on a device that you created. Create one for each device, and then
+/// call <see cref="Record"/> on every frame.
+/// <para>
+/// Keep in mind that before each call, you have to wait until the GPU has finished the commands from
+/// <c>framesInFlight</c> calls ago, and that they all have to be submitted to one queue, in order. If you draw several
+/// lists in a frame, count each one of them as a frame in flight.
+/// </para>
 /// </summary>
 /// <example>
 /// <code>
@@ -76,8 +80,8 @@ public sealed unsafe partial class VulkanRenderer : IDisposable
     public static IReadOnlyList<string> DeviceExtensions { get; } = ["VK_KHR_dynamic_rendering"];
 
     /// <summary>
-    /// Whether the renderer works on <paramref name="physicalDevice"/>. It needs Vulkan 1.2, so create the
-    /// instance with an API version of 1.2 or newer.
+    /// Returns <c>true</c> if the renderer works on <paramref name="physicalDevice"/>. It needs Vulkan 1.2, so make sure
+    /// you create the instance with an API version of 1.2 or newer.
     /// </summary>
     public static bool IsSupported(Vk api, PhysicalDevice physicalDevice)
     {

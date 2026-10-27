@@ -12,7 +12,7 @@ public partial class Label
     private Vector2 _scrolledSize;
     private int _caretIntoView;
 
-    /// <summary>Whether the text wraps and can have more than one line. On by default.</summary>
+    /// <summary>Lets the text wrap and have more than one line. Set this to <c>false</c> if you want it on a single line.</summary>
     public bool Multiline
     {
         get => _multiline;

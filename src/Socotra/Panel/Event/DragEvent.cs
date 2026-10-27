@@ -1,7 +1,7 @@
 namespace Socotra;
 
 /// <summary>
-/// Sent while a panel is dragged with the mouse: <c>ondragstart</c> once it moves far enough,
+/// Sent while a panel is dragged with the mouse. You get <c>ondragstart</c> once it has moved far enough,
 /// <c>ondrag</c> as it moves, and <c>ondragend</c> when it's let go.
 /// </summary>
 public class DragEvent : PanelEvent

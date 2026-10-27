@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// An on/off switch: a knob that slides across a track when the user presses it. It has the <c>active</c> class while
-/// on and <c>inactive</c> while off, so a stylesheet can restyle the <c>.switch-frame</c> track and <c>.switch-inner</c> knob.
-/// When the user flips it, it sends <c>onchange</c>.
+/// <c>SwitchControl</c> is an on/off switch, with a knob that slides across a track when the user presses it. It has the
+/// <c>active</c> class while it's on and <c>inactive</c> while it's off, so you can restyle the <c>.switch-frame</c>
+/// track and the <c>.switch-inner</c> knob in your stylesheet. It sends <c>onchange</c> when the user flips it.
 /// </summary>
 /// <example>
 /// <code>
@@ -96,7 +96,7 @@ public class SwitchControl : Panel
         }
     }
 
-    /// <summary>Whether the switch is on.</summary>
+    /// <summary>Whether the switch is on. You can set it yourself too.</summary>
     [Parameter]
     public bool Value
     {

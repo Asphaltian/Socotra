@@ -79,7 +79,7 @@ internal sealed partial class PanelInput(RootPanel root)
         _usingButtons = true;
         if (e.Button == "escape")
         {
-            if (e.Pressed && !_escapeDown)
+            if (e.Pressed && !_escapeDown && !CancelDrag())
             {
                 _queue.AddEscape();
             }
@@ -115,6 +115,37 @@ internal sealed partial class PanelInput(RootPanel root)
         {
             _mouseCapture = null;
         }
+    }
+
+    public bool CancelDrag()
+    {
+        var dragSource = _mouseStates[0].DragTarget;
+        var cancelled = new List<DragEvent>();
+        foreach (var state in _mouseStates)
+        {
+            if (state.CancelDrag() is { } e && !cancelled.Exists(c => c.Target == e.Target))
+            {
+                cancelled.Add(e);
+            }
+        }
+
+        if (cancelled.Count == 0)
+        {
+            return false;
+        }
+
+        var dropTarget = DropTarget;
+        DropTarget = null;
+        dropTarget?.CreateEvent(new PanelEvent("ondragleave", dragSource));
+        foreach (var e in cancelled)
+        {
+            if (e.Target is { IsDeleted: false, IsDeleting: false } target)
+            {
+                target.CreateEvent(e);
+            }
+        }
+
+        return true;
     }
 
     public void ReleaseSubtree(Panel subtree)
@@ -385,6 +416,18 @@ internal sealed partial class PanelInput(RootPanel root)
             _ => "none",
         };
 
+        public DragEvent? CancelDrag()
+        {
+            if (!Dragged || DragTarget is not { } dragTarget)
+            {
+                return null;
+            }
+
+            Dragged = false;
+            DragTarget = null;
+            return new DragEvent("ondragcancel", dragTarget, _startHoldOffsetLocal, _startHoldOffsetScreen);
+        }
+
         public void Release(Panel subtree)
         {
             if (DragTarget?.IsAncestor(subtree) == true)
@@ -476,7 +519,7 @@ internal sealed partial class PanelInput(RootPanel root)
                 }
             }
 
-            hovered.Focus();
+            input.SetFocusFromClick(hovered);
             _mouseDownEvent = new MousePanelEvent("onmousedown", hovered, NameOf(button)) { KeyboardModifiers = input.MouseModifiers, ClickCount = ClickCount };
             ClickCount = 1;
             hovered.CreateEvent(_mouseDownEvent);

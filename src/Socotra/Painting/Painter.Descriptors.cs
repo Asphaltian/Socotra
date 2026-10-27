@@ -30,13 +30,16 @@ public readonly ref partial struct Painter
 
         internal ShapeInstance BorderShapeData;
         internal Painter.Path.Data? PathData;
+        internal int? ShapeIndex;
 
         internal readonly bool HasImage => BackgroundImage is not null;
         internal readonly bool HasGradient => !BackgroundGradient.IsEmpty;
         internal readonly bool HasBorderImage => BorderImage.Texture is not null;
         internal readonly bool HasTextMask => TextMask is not null;
 
-        internal void SetPolygon(ReadOnlySpan<Vector2> points)
+        internal void SetPolygon(ReadOnlySpan<Vector2> points) => CreatePolygonShape(points, out BorderShapeData);
+
+        internal static void CreatePolygonShape(ReadOnlySpan<Vector2> points, out ShapeInstance shape)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(points.Length, 3);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(points.Length, BorderShape.MaxPoints);
@@ -45,7 +48,7 @@ public readonly ref partial struct Painter
             padded.Clear();
             points.CopyTo(padded);
 
-            BorderShapeData = new ShapeInstance
+            shape = new ShapeInstance
             {
                 Kind = ShapeKind.Polygon,
                 Polygon01 = Pack(padded, 0),

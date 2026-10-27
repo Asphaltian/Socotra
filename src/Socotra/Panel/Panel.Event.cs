@@ -18,8 +18,8 @@ public partial class Panel
 
     /// <summary>
     /// Sends an event called <paramref name="name"/> from this panel. Its ancestors get it too, until one stops it. Pass
-    /// <paramref name="debounce"/> in seconds to wait for a pause first, like for a search box: sending it again before
-    /// then only updates the value.
+    /// <paramref name="debounce"/> in seconds if you want to wait for a pause first, which is handy for a search box.
+    /// Sending it again before then only updates the value.
     /// </summary>
     public virtual void CreateEvent(string name, object? value = null, float? debounce = null)
     {
@@ -123,6 +123,9 @@ public partial class Panel
                 break;
             case "ondrag" when e is DragEvent drag:
                 OnDrag(drag);
+                break;
+            case "ondragcancel" when e is DragEvent drag:
+                OnDragCancel(drag);
                 break;
             case "ondrop":
                 OnDrop(e);

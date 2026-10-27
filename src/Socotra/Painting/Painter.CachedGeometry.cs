@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace Socotra;
 
 public readonly ref partial struct Painter
@@ -25,7 +23,7 @@ public readonly ref partial struct Painter
             }
 
             var context = painter.ActiveContext;
-            var descriptor = new Fill(color).CreateDescriptor(_bounds, context, clipFill: false);
+            new Fill(color).CreateDescriptor(_bounds, context, out var descriptor, clipFill: false);
             descriptor.BorderShapeData = _data.Shape;
             descriptor.PathData = _data;
             Add(context, descriptor);
@@ -51,7 +49,7 @@ public readonly ref partial struct Painter
             }
 
             var context = painter.ActiveContext;
-            var descriptor = new Fill(color).CreateDescriptor(_bounds, context);
+            new Fill(color).CreateDescriptor(_bounds, context, out var descriptor);
             descriptor.BorderShapeData = _data.Shape;
             descriptor.PathData = _data;
             Add(context, descriptor);
@@ -68,13 +66,18 @@ public readonly ref partial struct Painter
                 return null;
             }
 
-            var edges = new PathPrimitive[points.Length];
+            using var edgeBuffer = new PooledSpan<PathPrimitive>(points.Length);
+            var edges = edgeBuffer.Span;
+            PolygonEdges(points, bounds, edges);
+            return new Data(new() { Kind = ShapeKind.PolygonPath }, edges);
+        }
+
+        static void PolygonEdges(ReadOnlySpan<Vector2> points, Rect bounds, Span<PathPrimitive> edges)
+        {
             for (int i = 0; i < points.Length; i++)
             {
-                edges[i].Kind = PathPrimitiveKind.Segment;
-                edges[i].A = Pack(points[i] - bounds.Position, points[(i + 1) % points.Length] - bounds.Position);
+                edges[i] = new() { Kind = PathPrimitiveKind.Segment, A = Pack(points[i] - bounds.Position, points[(i + 1) % points.Length] - bounds.Position) };
             }
-            return new Data(new() { Kind = ShapeKind.PolygonPath }, edges);
         }
 
         internal static Data? BuildSolidLine(ReadOnlySpan<Vector2> points, float width, out Rect bounds)
@@ -85,8 +88,11 @@ public readonly ref partial struct Painter
                 return null;
             }
 
-            var primitives = new List<PathPrimitive>();
-            AddRun(primitives, points, Stroke.Solid(Color.White, width), false);
+            using var primitiveBuffer = new PooledSpan<PathPrimitive>(checked(points.Length * 2));
+            var primitives = primitiveBuffer.Span;
+            int primitiveCount = 0;
+            AddRun(primitives, ref primitiveCount, points, Stroke.Solid(Color.White, width), false);
+            primitives = primitives[..primitiveCount];
             if (!GetPrimitiveBounds(primitives, width * 0.5f, out bounds))
             {
                 return null;
@@ -97,7 +103,7 @@ public readonly ref partial struct Painter
                 Kind = ShapeKind.StrokePath,
                 Circle = new Vector4(bounds.Left, bounds.Top, width, 0)
             };
-            return new Data(shape, CollectionsMarshal.AsSpan(primitives));
+            return new Data(shape, primitives);
         }
     }
 }

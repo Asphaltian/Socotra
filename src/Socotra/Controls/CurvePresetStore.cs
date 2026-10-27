@@ -3,9 +3,10 @@ using System.Text.Json;
 namespace Socotra;
 
 /// <summary>
-/// The curves the user has saved as presets in a <see cref="CurveEditor"/>. Every curve editor uses <see cref="Shared"/>
-/// unless you give it a store of its own through <see cref="CurveEditor.PresetStore"/>. Presets are kept while your program
-/// runs; to keep them between runs, store what <see cref="Save"/> gives you and hand it to <see cref="Load"/> next time.
+/// <c>CurvePresetStore</c> holds the curves that the user has saved as presets in a <see cref="CurveEditor"/>. Every
+/// curve editor uses <see cref="Shared"/>, unless you give it its own store through <see cref="CurveEditor.PresetStore"/>.
+/// Presets only last while your program runs, so if you want to keep them between runs, store what
+/// <see cref="Save"/> gives you and pass it to <see cref="Load"/> next time.
 /// </summary>
 /// <example>
 /// <code>

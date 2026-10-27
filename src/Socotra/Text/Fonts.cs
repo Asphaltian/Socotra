@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// Load your font files here, then use them in <c>font-family</c> by the family name stored in the file.
-/// Fonts installed on the system work too, and fill in any characters your font doesn't have.
+/// <c>Fonts</c> is where you load your font files, and then you use them in <c>font-family</c> by the family name that's
+/// stored in the file. Fonts that are installed on the system work too, and they fill in any characters your font
+/// doesn't have.
 /// </summary>
 /// <example>
 /// <code>

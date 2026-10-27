@@ -1,9 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// A button that opens a <see cref="Socotra.Popup"/> when clicked, and closes it when clicked again. Derive from it and
-/// build the popup in <see cref="Open"/>.
-/// While the popup is up, the button has the <c>open</c> and <c>active</c> classes and the popup is as wide as the button.
+/// <c>PopupButton</c> is a button that opens a <see cref="Socotra.Popup"/> when it's clicked, and closes it when it's
+/// clicked again. Derive from it and build your popup in <see cref="Open"/>. While the popup is open, the button has the
+/// <c>open</c> and <c>active</c> classes, and the popup is as wide as the button.
 /// </summary>
 public abstract class PopupButton : Button
 {
@@ -16,7 +16,7 @@ public abstract class PopupButton : Button
     /// <summary>The popup <see cref="Open"/> made. Set it there.</summary>
     protected Popup? Popup { get; set; }
 
-    /// <summary>Whether the popup is open.</summary>
+    /// <summary>Returns <c>true</c> while the popup is open.</summary>
     protected bool IsOpen => Popup is { IsDeleted: false, IsDeleting: false };
 
     /// <summary>Opens the popup. Make it here and keep it in <see cref="Popup"/>.</summary>

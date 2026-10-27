@@ -11,7 +11,7 @@ public sealed class Transitions
         _panel = panel;
     }
 
-    /// <summary>Whether any transitions are playing.</summary>
+    /// <summary>Returns <c>true</c> while any transitions are playing.</summary>
     public bool HasAny => _entries.Count > 0;
 
     internal void Add(Styles from, Styles to, double startTime)

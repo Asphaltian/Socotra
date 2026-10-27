@@ -79,10 +79,10 @@ public partial class CurveEditor : Panel
         set => Assign([Normalize(value.A), Normalize(value.B)], range: true);
     }
 
-    /// <summary>Whether the editor is editing a <see cref="RangeValue"/>.</summary>
+    /// <summary>Returns <c>true</c> if the editor is editing a <see cref="RangeValue"/>.</summary>
     public bool IsRange { get; private set; }
 
-    /// <summary>Which curve the user is working on: its index in <see cref="Channels"/>, or 0 and 1 for the sides of a range.</summary>
+    /// <summary>Which curve the user is working on, as its index in <see cref="Channels"/>, or 0 and 1 for the sides of a range.</summary>
     public int ActiveCurve { get; private set; }
 
     /// <summary>The selected key on the active curve that number edits apply to, or -1.</summary>
@@ -91,10 +91,10 @@ public partial class CurveEditor : Panel
     /// <summary>The selected keys, on any curve.</summary>
     public IReadOnlyCollection<CurveKey> SelectedKeys => _selection.ToArray();
 
-    /// <summary>Whether there's a change to undo.</summary>
+    /// <summary>Returns <c>true</c> if there's a change to undo.</summary>
     public bool CanUndo => _undo.Count > 0;
 
-    /// <summary>Whether there's an undone change to redo.</summary>
+    /// <summary>Returns <c>true</c> if there's an undone change to redo.</summary>
     public bool CanRedo => _redo.Count > 0;
 
     /// <summary>Snaps dragged keys to <see cref="SnapIncrement"/>. Holding Ctrl while dragging snaps too.</summary>
@@ -335,7 +335,7 @@ public partial class CurveEditor : Panel
         _tools.Sync();
     }
 
-    /// <summary>A key in the editor: which curve it's on and which key of that curve it is.</summary>
+    /// <summary>A key in the editor, with which curve it's on and which key of that curve it is.</summary>
     /// <param name="CurveIndex">The curve's index in <see cref="Channels"/>, or 0 and 1 for the sides of a range.</param>
     /// <param name="KeyIndex">The key's index in the curve's <see cref="Curve.Frames"/>.</param>
     public readonly record struct CurveKey(int CurveIndex, int KeyIndex);

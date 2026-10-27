@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// Easing functions for transitions and animations. Stylesheets pick them by name, like <c>ease-out</c>,
-/// <c>bounce-in</c>, <c>cubic-bezier(0.4, 0, 0.2, 1)</c> or <c>steps(4, end)</c>, and you can call them yourself too.
+/// <c>Easing</c> holds the easing functions that transitions and animations use. Stylesheets pick them by name, like
+/// <c>ease-out</c>, <c>bounce-in</c>, <c>cubic-bezier(0.4, 0, 0.2, 1)</c> or <c>steps(4, end)</c>, and you can also
+/// call them yourself if you want to ease your own values.
 /// </summary>
 /// <example><code>
 /// // Ease your own 0 to 1 progress the same way a stylesheet would
@@ -61,6 +62,15 @@ public static class Easing
         f -= 1.0f;
         return -0.5f * ((f * (f - 2.0f)) - 1.0f);
     }
+
+    /// <summary>Same as <see cref="QuadraticIn"/>, but with a sharper curve.</summary>
+    public static float CubicIn(float f) => f * f * f;
+
+    /// <summary>Same as <see cref="QuadraticOut"/>, but with a sharper curve.</summary>
+    public static float CubicOut(float f) => 1f - MathF.Pow(1f - f, 3f);
+
+    /// <summary>Speeds up like <see cref="CubicIn"/> for the first half, then slows down like <see cref="CubicOut"/>.</summary>
+    public static float CubicInOut(float f) => f < 0.5f ? CubicIn(f * 2f) * 0.5f : (CubicOut((f - 0.5f) * 2f) * 0.5f) + 0.5f;
 
     /// <summary>Starts very slow and speeds up sharply.</summary>
     public static float ExpoIn(float f) => f == 0 ? 0 : MathF.Pow(1024, f - 1);

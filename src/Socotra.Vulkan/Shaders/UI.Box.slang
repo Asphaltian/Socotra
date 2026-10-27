@@ -35,13 +35,13 @@ PixelInput VertexMain(uint nVertexID : SV_VulkanVertexID, uint nInstanceID : SV_
     PixelInput o;
 
     uint instanceIndex = nInstanceID + Draw.InstanceOffset;
-    float2 corner = QuadPositions[nVertexID];
+    float2 corner = QuadPosition(nVertexID);
     BoxInstanceData inst = BoxInstances[instanceIndex];
     float4x4 instTransform = TransformBuffer[inst.TransformIndex].Mat;
     if (inst.ShapeIndex >= 0)
     {
         int kind = BorderShapeBuffer[inst.ShapeIndex].Kind;
-        if (kind == UI_SHAPE_POLYGON_PATH || kind == UI_SHAPE_STROKE_PATH)
+        if (kind == UI_SHAPE_POLYGON_PATH || kind == UI_SHAPE_STROKE_PATH || kind == UI_SHAPE_SIMPLE_LINE || kind == UI_SHAPE_POLYGON_STROKE)
             return PathQuad(instanceIndex, corner, inst, instTransform);
     }
     o.vPathPosition = float3(0, 0, 1);
@@ -124,6 +124,51 @@ float4 BorderSideColor(float2 pos, float2 boxSize, float4 borderWidth, float4 cL
 
 #include "UI.BorderStyle.slang"
 
+float PolygonStrokeCoverage(BorderShapeData stroke, float2 p, float2 pixelX, float2 pixelY)
+{
+    BorderShapeData polygon = BorderShapeBuffer[stroke.PolygonCount];
+    float alignmentSign = stroke.Circle.w;
+    bool aligned = alignmentSign != 0.0;
+    float radius = stroke.Circle.z * 0.5;
+    float maximumDistance = aligned ? 1e15 : radius + length(pixelX) + length(pixelY);
+    float distance;
+    float2 normal = float2(1, 0);
+    if (polygon.Kind == UI_SHAPE_POLYGON_PATH)
+    {
+        distance = PathPolygonSdf(p, polygon, normal, maximumDistance, aligned);
+    }
+    else
+    {
+        float distanceSquared = maximumDistance * maximumDistance;
+        float sign = 1.0;
+        float2 a = ShapePoint(polygon.Polygon01, polygon.Polygon23, polygon.Polygon45, polygon.Polygon67, polygon.PolygonCount - 1);
+        for (int i = 0; i < 8; i++)
+        {
+            if (i >= polygon.PolygonCount) break;
+            float2 b = ShapePoint(polygon.Polygon01, polygon.Polygon23, polygon.Polygon45, polygon.Polygon67, i);
+            float2 e = b - a, w = p - a;
+            float2 nearest = w - e * saturate(dot(w, e) / max(dot(e, e), 0.000001));
+            float d = dot(nearest, nearest);
+            if (d < distanceSquared)
+            {
+                distanceSquared = d;
+                normal = d > 0.00000001 ? UINormal(nearest) : UINormal(float2(-e.y, e.x));
+            }
+            bool3 crossing = bool3(p.y >= a.y, p.y < b.y, e.x * w.y > e.y * w.x);
+            if (aligned && (all(crossing) || all(!crossing))) sign = -sign;
+            a = b;
+        }
+        distance = sign * sqrt(distanceSquared);
+    }
+
+    float filterWidth = UIPixelWidth(normal, pixelX, pixelY);
+    float coverage = saturate(0.5 - (abs(distance) - radius) / filterWidth)
+        - saturate(0.5 - (abs(distance) + radius) / filterWidth);
+    if (aligned)
+        coverage = min(coverage, SdfCoverage(distance * alignmentSign));
+    return coverage;
+}
+
 float4 AddImageBorder(float2 texCoord, float2 boxSize, float4 borderWidth, int borderImageIndex, int borderImageSamplerIndex, int borderImageMode, int borderImageFill, float4 borderImageSlice)
 {
     float4 BorderImageWidth = borderWidth;
@@ -178,52 +223,6 @@ float4 AlphaBlend(float4 src, float4 dest)
     result.a = src.a + (1 - src.a) * dest.a;
     result.rgb = (src.a * src.rgb + (1 - src.a) * dest.a * dest.rgb) / max(result.a, 0.0001);
     return result;
-}
-
-float2 ShapePoint(float4 p01, float4 p23, float4 p45, float4 p67, int i)
-{
-    if (i < 2) return i == 0 ? p01.xy : p01.zw;
-    if (i < 4) return i == 2 ? p23.xy : p23.zw;
-    if (i < 6) return i == 4 ? p45.xy : p45.zw;
-    return i == 6 ? p67.xy : p67.zw;
-}
-
-float ShapeSdf(float2 p, float4 p01, float4 p23, float4 p45, float4 p67, int count, float4 circle, int kind)
-{
-    if (kind == UI_SHAPE_CIRCLE) return length(p - circle.xy) - circle.z;
-    if (kind == UI_SHAPE_CAPSULE)
-    {
-        float2 delta = p01.xy - circle.xy;
-        float len = length(delta);
-        float dr = circle.w - circle.z;
-        float2 axis = delta / max(len, 0.000001);
-        float2 q = p - circle.xy;
-        float x = dot(q, axis), y = abs(dot(q, float2(-axis.y, axis.x)));
-        float t = saturate((x + dr * y / sqrt(max(len * len - dr * dr, 0.000001))) / max(len, 0.000001));
-        return length(q - delta * t) - lerp(circle.z, circle.w, t);
-    }
-    if (kind == UI_SHAPE_CRESCENT)
-        return max(length(p - circle.xy) - circle.z, circle.w - length(p - p01.xy));
-    if (kind == UI_SHAPE_HEART)
-    {
-        float2 q = (p - circle.xy) / circle.z;
-        float diamond = (abs(q.x) + abs(q.y) - p01.z) * 0.70710678;
-        float lobes = length(float2(abs(q.x) - p01.x, q.y + p01.y)) - circle.w;
-        return min(diamond, lobes) * circle.z;
-    }
-    float2 first = ShapePoint(p01, p23, p45, p67, 0);
-    float d = dot(p - first, p - first), s = 1.0; int j = count - 1;
-    for (int i = 0; i < 8; i++)
-    {
-        if (i >= count) break;
-        float2 vi = ShapePoint(p01, p23, p45, p67, i), vj = ShapePoint(p01, p23, p45, p67, j);
-        float2 e = vj - vi, w = p - vi;
-        float2 b = w - e * clamp(dot(w, e) / max(dot(e, e), 0.000001), 0.0, 1.0);
-        d = min(d, dot(b, b));
-        bool3 c = bool3(p.y >= vi.y, p.y < vj.y, e.x * w.y > e.y * w.x);
-        if (all(c) || all(!c)) s *= -1.0; j = i;
-    }
-    return s * sqrt(d);
 }
 
 float4 RenderShadow(BoxInstanceData inst, PixelInput i, bool inset, out float flCoverage)
@@ -343,7 +342,7 @@ float4 EvaluateGradient(GradientData g, float2 texCoord, float2 boxSize)
     float gradLength;
     float t = GradientPosition(g, texCoord, boxSize, gradLength);
 
-    int last = g.Count - 1;
+    int last = clamp(g.Count, 1, 8) - 1;
 
     if (t <= GradientStop(g, 0, gradLength))
         return g.StopColors[0];
@@ -424,8 +423,20 @@ float4 RenderInstance(PixelInput i, out float flCoverage)
     [branch] if (inst.ShapeIndex >= 0)
     {
         BorderShapeData shape = BorderShapeBuffer[inst.ShapeIndex];
-        isPath = shape.Kind == UI_SHAPE_POLYGON_PATH || shape.Kind == UI_SHAPE_STROKE_PATH;
-        if (shape.Kind == UI_SHAPE_STROKE_PATH)
+        isPath = shape.Kind == UI_SHAPE_POLYGON_PATH || shape.Kind == UI_SHAPE_STROKE_PATH || shape.Kind == UI_SHAPE_SIMPLE_LINE || shape.Kind == UI_SHAPE_POLYGON_STROKE;
+        if (shape.Kind == UI_SHAPE_POLYGON_STROKE)
+        {
+            float2 local = i.vTexCoord.xy * boxSize;
+            pathCoverage = PolygonStrokeCoverage(shape, local + shape.Circle.xy, ddx(local), ddy(local));
+            dOuter = -1.0;
+        }
+        else if (shape.Kind == UI_SHAPE_SIMPLE_LINE)
+        {
+            float2 local = i.vTexCoord.xy * boxSize;
+            pathCoverage = SimpleLineCoverage(shape, local + shape.Polygon45.xy, ddx(local), ddy(local));
+            dOuter = -1.0;
+        }
+        else if (shape.Kind == UI_SHAPE_STROKE_PATH)
         {
             float2 local = i.vTexCoord.xy * boxSize;
             pathCoverage = PathStrokeCoverage(shape, local + shape.Circle.xy, ddx(local), ddy(local));
@@ -586,7 +597,7 @@ float4 FragmentMain(PixelInput i) : SV_Target0
     if (inst.ShapeIndex >= 0)
     {
         int kind = BorderShapeBuffer[inst.ShapeIndex].Kind;
-        path = kind == UI_SHAPE_POLYGON_PATH || kind == UI_SHAPE_STROKE_PATH;
+        path = kind == UI_SHAPE_POLYGON_PATH || kind == UI_SHAPE_STROKE_PATH || kind == UI_SHAPE_SIMPLE_LINE || kind == UI_SHAPE_POLYGON_STROKE;
         if (path)
         {
             float2 local = i.vPathPosition.xy / (i.vPathPosition.z != 0.0 ? i.vPathPosition.z : 1.0);

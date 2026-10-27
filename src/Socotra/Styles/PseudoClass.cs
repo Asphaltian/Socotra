@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>The states a panel can be in, which selectors like <c>:hover</c> match. A panel can be in several at once.</summary>
+/// <summary>The states that a panel can be in, which selectors like <c>:hover</c> match. Keep in mind that a panel can be in several of them at once.</summary>
 [Flags]
 public enum PseudoClass
 {

@@ -1,29 +1,44 @@
-using System.Runtime.InteropServices;
-
 namespace Socotra;
 
 public readonly ref partial struct Painter
 {
     internal static partial class Path
     {
-        static void ValidatePatternSize(double length, double period, int primitivesPerPeriod, int segments)
+        static int GetPatternCapacity(double length, double period, int primitivesPerPeriod, int segments)
         {
             double primitives = (Math.Ceiling(length / period) + 2) * primitivesPerPeriod + segments * 2.0;
             if (primitives > Data.MaxPrimitiveCount)
             {
                 throw new ArgumentOutOfRangeException("stroke", "The pattern's generated geometry exceeds the GPU path buffer capacity.");
             }
+
+            return (int)primitives;
         }
 
-        internal static void DrawPolygon(Painter.Context buffer, ReadOnlySpan<Vector2> points, Fill fill)
+        internal static void DrawPolygon(Painter.Context buffer, ReadOnlySpan<Vector2> points, in Fill fill)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(points.Length, 3);
+            if (!buffer.State.HasArea || buffer.State.Opacity == 0)
+            {
+                return;
+            }
+
             if (!GetBounds(points, out var bounds) || bounds.Width <= 0 || bounds.Height <= 0 || bounds.Size.Length() <= 0)
             {
                 return;
             }
 
-            var desc = fill.CreateDescriptor(bounds, buffer);
+            var shapeIndex = AddPolygonGeometry(buffer, points, bounds);
+            AddShape(buffer, fill, bounds, bounds, shapeIndex);
+        }
+
+        static int AddPolygonGeometry(Painter.Context buffer, ReadOnlySpan<Vector2> points, Rect bounds)
+        {
+            if (points.Length > BorderShape.MaxPoints && points.Length <= PainterBatcher.MaxPolygonPoints)
+            {
+                return buffer.Batcher.AddPolygonPoints(points, bounds.Position);
+            }
+
             if (points.Length <= BorderShape.MaxPoints)
             {
                 Span<Vector2> local = stackalloc Vector2[points.Length];
@@ -32,24 +47,77 @@ public readonly ref partial struct Painter
                     local[i] = points[i] - bounds.Position;
                 }
 
-                desc.SetPolygon(local);
-                Add(buffer, desc);
-                return;
+                BoxDescriptor.CreatePolygonShape(local, out var shape);
+                return buffer.Batcher.AddShape(shape);
             }
 
-            if (BuildPolygon(points, out _) is not { } data)
-            {
-                return;
-            }
-
-            desc.PathData = data;
-            desc.BorderShapeData = data.Shape;
-            Add(buffer, desc);
+            using var edgeBuffer = new PooledSpan<PathPrimitive>(points.Length);
+            var edges = edgeBuffer.Span;
+            PolygonEdges(points, bounds, edges);
+            return buffer.Batcher.AddPath(new ShapeInstance { Kind = ShapeKind.PolygonPath }, edges);
         }
 
-        internal static void DrawPolyline(Painter.Context buffer, ReadOnlySpan<Vector2> points, Stroke stroke, bool closed = false)
+        internal static bool TryDrawOutlinedPolygon(Painter.Context buffer, ReadOnlySpan<Vector2> points)
         {
-            if (stroke.IsDisabled)
+            ref var state = ref buffer.State;
+            ref readonly var stroke = ref state.Stroke;
+            if (!HasStroke(stroke) || stroke.Style is BorderStyle.Dashed or BorderStyle.Dotted
+                || stroke.Join != Stroke.LineJoin.Round)
+            {
+                return false;
+            }
+
+            if (!state.HasArea || state.Opacity == 0)
+            {
+                return true;
+            }
+
+            bool aligned = stroke.Alignment != Stroke.StrokeAlignment.Center;
+            float width = aligned ? stroke.Width * 2 : stroke.Width;
+            if (!ValidWidth(width) || !GetBounds(points, out var bounds) || !ValidBounds(bounds))
+            {
+                return false;
+            }
+
+            float radius = width * 0.5f;
+            float minimumLength = MathF.Max(radius, 0.001f);
+            for (int i = 0; i < points.Length; i++)
+            {
+                float lengthSquared = (points[(i + 1) % points.Length] - points[i]).LengthSquared();
+                if (!float.IsFinite(lengthSquared) || lengthSquared < minimumLength * minimumLength)
+                {
+                    return false;
+                }
+            }
+
+            bool inside = stroke.Alignment == Stroke.StrokeAlignment.Inside;
+            var strokeBounds = inside ? bounds : bounds.Grow(radius);
+            if (!ValidBounds(strokeBounds) || !IsFinite(strokeBounds.BottomRight))
+            {
+                return false;
+            }
+
+            int polygonIndex = AddPolygonGeometry(buffer, points, bounds);
+            if (!state.Fill.IsTransparent)
+            {
+                AddShape(buffer, state.Fill, bounds, bounds, polygonIndex);
+            }
+
+            var offset = strokeBounds.Position - bounds.Position;
+            int strokeIndex = buffer.Batcher.AddShape(ShapeInstance.CreatePolygonStroke(polygonIndex, offset, width, stroke.Alignment));
+            AddShape(buffer, Stroke.GetFill(in stroke), strokeBounds, strokeBounds, strokeIndex, clipFill: false);
+            return true;
+        }
+
+        internal static void DrawPolyline(Painter.Context buffer, ReadOnlySpan<Vector2> points, in Stroke stroke, bool closed = false)
+        {
+            if (points.Length == 2 && !closed)
+            {
+                DrawSimpleLine(buffer, points[0], points[1], stroke);
+                return;
+            }
+
+            if (stroke.IsDisabled || !buffer.State.HasArea || buffer.State.Opacity == 0)
             {
                 return;
             }
@@ -59,7 +127,15 @@ public readonly ref partial struct Painter
                 return;
             }
 
-            Span<Vector2> clean = points.Length < 128 ? stackalloc Vector2[points.Length + 1] : new Vector2[points.Length + 1];
+            DrawGeneralPolyline(buffer, points, stroke, closed);
+        }
+
+        static void DrawGeneralPolyline(Painter.Context buffer, ReadOnlySpan<Vector2> points, in Stroke originalStroke, bool closed)
+        {
+            scoped ref readonly var stroke = ref originalStroke;
+            Stroke alignedStroke = default;
+            using var cleanBuffer = new PooledSpan<Vector2>(checked(points.Length + 1));
+            var clean = cleanBuffer.Span;
             int count = 0;
             foreach (var point in points)
             {
@@ -78,7 +154,7 @@ public readonly ref partial struct Painter
                 return;
             }
 
-            var alignmentMask = closed && stroke.Alignment != Stroke.StrokeAlignment.Center ? PolygonMask(clean[..count]) : null;
+            int polygonCount = count;
             if (closed)
             {
                 clean[count++] = clean[0];
@@ -86,28 +162,36 @@ public readonly ref partial struct Painter
 
             clean = clean[..count];
 
-            Span<double> lengths = clean.Length <= 128 ? stackalloc double[clean.Length - 1] : new double[clean.Length - 1];
+            bool patterned = GetPattern(stroke, out var dash, out var period, out var phase);
+            using var lengthBuffer = patterned ? new PooledSpan<double>(clean.Length - 1) : default;
+            var lengths = lengthBuffer.Span;
             double total = 0;
-            for (int i = 0; i < lengths.Length; i++)
+            for (int i = 0; i + 1 < clean.Length; i++)
             {
-                lengths[i] = (clean[i + 1] - clean[i]).Length();
-                if (!double.IsFinite(lengths[i]) || lengths[i] <= 0)
+                float lengthSquared = (clean[i + 1] - clean[i]).LengthSquared();
+                if (!float.IsFinite(lengthSquared) || lengthSquared <= 0)
                 {
                     return;
                 }
 
-                total += lengths[i];
+                if (patterned)
+                {
+                    lengths[i] = MathF.Sqrt(lengthSquared);
+                    total += lengths[i];
+                }
             }
 
-            bool patterned = GetPattern(stroke, out var dash, out var period, out var phase);
+            int capacity = checked(clean.Length * 2);
             if (patterned)
             {
-                ValidatePatternSize(total, period, stroke.Style == BorderStyle.Dashed && stroke.Cap == Stroke.LineCap.Round ? 3 : 1, lengths.Length);
+                capacity = Math.Max(capacity, GetPatternCapacity(total, period, stroke.Style == BorderStyle.Dashed && stroke.Cap == Stroke.LineCap.Round ? 3 : 1, lengths.Length));
             }
 
-            if (alignmentMask is not null)
+            bool aligned = closed && stroke.Alignment != Stroke.StrokeAlignment.Center;
+            if (aligned)
             {
-                stroke = stroke with { Width = stroke.Width * 2 };
+                alignedStroke = stroke with { Width = stroke.Width * 2 };
+                stroke = ref alignedStroke;
             }
 
             if (!ValidWidth(stroke.Width))
@@ -115,19 +199,23 @@ public readonly ref partial struct Painter
                 return;
             }
 
-            var primitives = new List<PathPrimitive>();
-            AddRun(primitives, clean, stroke, closed);
-            if (!GetPrimitiveBounds(primitives, stroke.Width * 0.5f, out var paintBounds))
+            var alignmentMask = aligned ? PolygonMask(buffer, clean[..polygonCount]) : (AlignmentMask?)null;
+            using var primitiveBuffer = new PooledSpan<PathPrimitive>(capacity);
+            var primitives = primitiveBuffer.Span;
+            int primitiveCount = 0;
+            AddRun(primitives, ref primitiveCount, clean, stroke, closed);
+            if (!GetPrimitiveBounds(primitives[..primitiveCount], stroke.Width * 0.5f, out var paintBounds))
             {
                 return;
             }
 
             if (!patterned)
             {
-                EmitStroke(buffer, primitives, stroke, paintBounds, alignmentMask);
+                EmitStroke(buffer, primitives[..primitiveCount], stroke, paintBounds, alignmentMask, paintBounds);
                 return;
             }
-            primitives.Clear();
+
+            primitiveCount = 0;
             if (stroke.Style == BorderStyle.Dotted)
             {
                 int segment = 0;
@@ -140,13 +228,18 @@ public readonly ref partial struct Painter
                     }
 
                     var point = clean[segment] + (clean[segment + 1] - clean[segment]) * (float)((distance - segmentStart) / lengths[segment]);
-                    AddDisc(primitives, point);
+                    AddDisc(primitives, ref primitiveCount, point);
                 }
             }
             else
             {
-                var runs = new List<List<Vector2>>();
-                List<Vector2>? run = null;
+                using var runPointBuffer = new PooledSpan<Vector2>(checked(capacity * 2 + clean.Length));
+                using var runBuffer = new PooledSpan<(int Start, int Count)>(capacity);
+                var runPoints = runPointBuffer.Span;
+                var runs = runBuffer.Span;
+                int pointCount = 0;
+                int runCount = 0;
+                bool inRun = false;
                 for (int i = 0; i < lengths.Length; i++)
                 {
                     double position = 0;
@@ -165,10 +258,17 @@ public readonly ref partial struct Painter
                         {
                             var a = clean[i] + (clean[i + 1] - clean[i]) * (float)(position / lengths[i]);
                             var b = end == lengths[i] ? clean[i + 1] : clean[i] + (clean[i + 1] - clean[i]) * (float)(end / lengths[i]);
-                            if (run is null) { run = [a]; runs.Add(run); }
-                            if (b != run[^1])
+                            if (!inRun)
                             {
-                                run.Add(b);
+                                runs[runCount++] = (pointCount, 1);
+                                runPoints[pointCount++] = a;
+                                inRun = true;
+                            }
+
+                            if (b != runPoints[pointCount - 1])
+                            {
+                                runPoints[pointCount++] = b;
+                                runs[runCount - 1].Count++;
                             }
                         }
                         position = end;
@@ -177,7 +277,7 @@ public readonly ref partial struct Painter
                         {
                             if (on)
                             {
-                                run = null;
+                                inRun = false;
                             }
 
                             phase = on ? dash : 0;
@@ -185,24 +285,97 @@ public readonly ref partial struct Painter
                     }
                 }
 
-                if (closed && runs.Count > 1 && runs[0][0] == clean[0] && runs[^1][^1] == clean[0])
+                runs = runs[..runCount];
+                if (closed && runCount > 1 && runPoints[0] == clean[0] && runPoints[pointCount - 1] == clean[0])
                 {
-                    var last = runs[^1];
-                    last.AddRange(CollectionsMarshal.AsSpan(runs[0])[1..]);
-                    runs.RemoveAt(0);
+                    int extra = runs[0].Count - 1;
+                    runPoints.Slice(1, extra).CopyTo(runPoints[pointCount..]);
+                    runs[^1].Count += extra;
+                    runs = runs[1..];
                 }
-                foreach (var piece in runs)
+                foreach (var run in runs)
                 {
-                    AddRun(primitives, CollectionsMarshal.AsSpan(piece), stroke, closed && piece.Count > 2 && piece[0] == piece[^1]);
+                    var piece = runPoints.Slice(run.Start, run.Count);
+                    AddRun(primitives, ref primitiveCount, piece, stroke, closed && piece.Length > 2 && piece[0] == piece[^1]);
                 }
             }
 
-            EmitStroke(buffer, primitives, stroke, paintBounds, alignmentMask);
+            EmitStroke(buffer, primitives[..primitiveCount], stroke, paintBounds, alignmentMask);
         }
 
-        internal static void DrawArc(Painter.Context buffer, Vector2 center, float radius, float startAngle, float sweepAngle, Stroke stroke, Data? alignmentMask = null)
+        internal static void DrawSimpleLine(Painter.Context buffer, Vector2 from, Vector2 to, in Stroke stroke)
         {
-            if (stroke.IsDisabled)
+            if (stroke.IsDisabled || !buffer.State.HasArea || buffer.State.Opacity == 0)
+            {
+                return;
+            }
+
+            if (!ValidWidth(stroke.Width) || !IsFinite(from) || !IsFinite(to))
+            {
+                return;
+            }
+
+            float length = (to - from).Length();
+            if (!float.IsFinite(length) || length <= 0)
+            {
+                return;
+            }
+
+            float radius = stroke.Width * 0.5f;
+            var primitive = new PathPrimitive
+            {
+                Kind = PathPrimitiveKind.Segment,
+                A = Pack(from, to),
+                B = new Vector4((int)stroke.Cap, (int)stroke.Cap, 0, 0),
+                Count = stroke.Cap == Stroke.LineCap.Square ? PathCap.SquareStart | PathCap.SquareEnd : 0,
+            };
+            var bounds = PrimitiveBounds(primitive, radius);
+            if (!IsFinite(bounds.Position) || !IsFinite(bounds.Size))
+            {
+                return;
+            }
+
+            int pattern = 0;
+            double first = 0, last = 0;
+            var paintBounds = bounds;
+            if (GetPattern(stroke, out var dash, out var period, out var phase))
+            {
+                pattern = stroke.Style == BorderStyle.Dotted ? 2 : 1;
+                first = pattern == 2 ? (phase == 0 ? 0 : period - phase) : -phase;
+                if (pattern == 1 && first + dash <= 0)
+                {
+                    first += period;
+                }
+
+                if (pattern == 2 ? first > length : first >= length)
+                {
+                    return;
+                }
+
+                last = pattern == 2 ? Math.Floor((length - first) / period) : Math.Ceiling((length - first) / period) - 1;
+
+                var delta = to - from;
+                var a = from + delta * (float)(Math.Max(first, 0) / length);
+                var b = from + delta * (float)(Math.Min(first + last * period + (pattern == 2 ? 0 : dash), length) / length);
+                primitive.A = Pack(a, b);
+                bounds = pattern == 2 ? Socotra.Rect.FromPoints(a, b).Grow(radius) : PrimitiveBounds(primitive, radius);
+            }
+
+            var shape = new ShapeInstance
+            {
+                Kind = ShapeKind.SimpleLine,
+                Circle = new Vector4(from.X, from.Y, stroke.Width, (int)stroke.Cap),
+                Polygon01 = new Vector4(to.X, to.Y, length, pattern),
+                Polygon23 = pattern == 0 ? default : new Vector4((float)dash, (float)Math.Min(period, float.MaxValue), (float)first, (float)last),
+                Polygon45 = new Vector4(bounds.Left, bounds.Top, 0, 0),
+            };
+            var shapeIndex = buffer.Batcher.AddShape(shape);
+            AddShape(buffer, Stroke.GetFill(in stroke), bounds, paintBounds, shapeIndex, clipFill: false);
+        }
+
+        internal static void DrawArc(Painter.Context buffer, Vector2 center, float radius, float startAngle, float sweepAngle, Stroke stroke, AlignmentMask? alignmentMask = null)
+        {
+            if (stroke.IsDisabled || !buffer.State.HasArea || buffer.State.Opacity == 0)
             {
                 return;
             }
@@ -213,18 +386,19 @@ public readonly ref partial struct Painter
             }
 
             bool closed = MathF.Abs(sweepAngle) >= 360;
-            alignmentMask = closed && stroke.Alignment != Stroke.StrokeAlignment.Center ? alignmentMask ?? CircleMask(center, radius) : null;
+            bool aligned = closed && stroke.Alignment != Stroke.StrokeAlignment.Center;
+            if (!aligned)
+            {
+                alignmentMask = null;
+            }
+
             double sweep = Math.Clamp(sweepAngle, -360, 360) * (Math.PI / 180);
             double start = (startAngle % 360) * (Math.PI / 180);
             double total = Math.Abs(sweep) * radius;
             double direction = Math.Sign(sweep);
             bool patterned = GetPattern(stroke, out var dash, out var period, out var phase);
-            if (patterned)
-            {
-                ValidatePatternSize(total, period, 1, 1);
-            }
-
-            if (alignmentMask is not null)
+            int capacity = patterned ? GetPatternCapacity(total, period, 1, 1) : 1;
+            if (aligned)
             {
                 stroke = stroke with { Width = stroke.Width * 2 };
             }
@@ -234,45 +408,56 @@ public readonly ref partial struct Painter
                 return;
             }
 
-            var primitives = new List<PathPrimitive>();
             var paintBounds = ArcBounds(center, radius, start, sweep).Grow(stroke.Width * (closed ? 0.5f : stroke.Cap == Stroke.LineCap.Arrow ? 1 : stroke.Cap == Stroke.LineCap.Square ? (MathF.Sqrt(2) * 0.5f) : 0.5f));
             if (!IsFinite(paintBounds.Position) || !IsFinite(paintBounds.Size))
             {
                 return;
             }
 
-            void AddArc(double from, double to, bool full = false)
+            if (aligned)
             {
-                primitives.Add(new PathPrimitive
+                alignmentMask ??= CircleMask(buffer, center, radius);
+            }
+
+            PathPrimitive ArcPrimitive(double from, double to, bool full = false)
+            {
+                return new PathPrimitive
                 {
                     Kind = PathPrimitiveKind.Arc,
                     A = new Vector4(center.X, center.Y, radius, (float)(start + direction * from / radius)),
                     B = new Vector4((float)(direction * (to - from) / radius), 0, 0, 0),
                     Count = full ? PathCap.Ring : (int)stroke.Cap,
-                });
+                };
             }
 
             if (!patterned)
             {
-                AddArc(0, total, closed);
-                EmitStroke(buffer, primitives, stroke, paintBounds, alignmentMask);
+                Span<PathPrimitive> primitive = stackalloc PathPrimitive[1];
+                primitive[0] = ArcPrimitive(0, total, closed);
+                EmitStroke(buffer, primitive, stroke, paintBounds, alignmentMask);
                 return;
             }
+
+            using var primitiveBuffer = new PooledSpan<PathPrimitive>(capacity);
+            var primitives = primitiveBuffer.Span;
+            int primitiveCount = 0;
             if (stroke.Style == BorderStyle.Dotted)
             {
                 foreach (double distance in DotDistances(stroke, total, closed, period, phase))
                 {
-                    AddDisc(primitives, center + Direction(start + direction * distance / radius) * radius);
+                    AddDisc(primitives, ref primitiveCount, center + Direction(start + direction * distance / radius) * radius);
                 }
             }
             else
             {
-                var intervals = new List<(double Start, double End)>();
+                using var intervalBuffer = new PooledSpan<(double Start, double End)>(capacity);
+                var intervals = intervalBuffer.Span;
+                int intervalCount = 0;
                 for (double distance = -phase; distance < total;)
                 {
                     if (distance + dash > 0)
                     {
-                        intervals.Add((Math.Max(0, distance), Math.Min(total, distance + dash)));
+                        intervals[intervalCount++] = (Math.Max(0, distance), Math.Min(total, distance + dash));
                     }
 
                     double next = distance + period;
@@ -283,50 +468,75 @@ public readonly ref partial struct Painter
 
                     distance = next;
                 }
-                if (closed && intervals.Count > 1 && intervals[0].Start == 0 && intervals[^1].End == total)
+                intervals = intervals[..intervalCount];
+                if (closed && intervals.Length > 1 && intervals[0].Start == 0 && intervals[^1].End == total)
                 {
                     intervals[^1] = (intervals[^1].Start, total + intervals[0].End);
-                    intervals.RemoveAt(0);
+                    intervals = intervals[1..];
                 }
                 foreach (var interval in intervals)
                 {
-                    AddArc(interval.Start, interval.End, closed && interval.End - interval.Start >= total);
+                    primitives[primitiveCount++] = ArcPrimitive(interval.Start, interval.End, closed && interval.End - interval.Start >= total);
                 }
             }
 
-            EmitStroke(buffer, primitives, stroke, paintBounds, alignmentMask);
+            EmitStroke(buffer, primitives[..primitiveCount], stroke, paintBounds, alignmentMask);
         }
 
-        static IEnumerable<double> DotDistances(Stroke stroke, double length, bool closed, double period, double phase)
+        static DotDistanceEnumerator DotDistances(in Stroke stroke, double length, bool closed, double period, double phase)
         {
+            int count = -1;
             if (closed)
             {
-                int count = (int)Math.Max(1, Math.Round(length / period));
+                count = (int)Math.Max(1, Math.Round(length / period));
                 period = length / count;
                 phase = float.IsFinite(stroke.Offset) ? ((stroke.Offset % period) + period) % period : 0;
-                double first = (period - phase) % period;
-                for (int i = 0; i < count; i++)
-                {
-                    yield return Math.Min(length, first + i * period);
-                }
-
-                yield break;
             }
 
-            for (double distance = phase == 0 ? 0 : period - phase; distance <= length;)
+            return new(length, period, closed ? (period - phase) % period : phase == 0 ? 0 : period - phase, count);
+        }
+
+        struct DotDistanceEnumerator(double length, double period, double first, int count)
+        {
+            int _index;
+            readonly double _start = first;
+            double _next = first;
+
+            public double Current { get; private set; }
+
+            public readonly DotDistanceEnumerator GetEnumerator() => this;
+
+            public bool MoveNext()
             {
-                yield return distance;
-                double next = distance + period;
-                if (next <= distance)
+                if (count >= 0)
                 {
-                    yield break;
+                    if (_index >= count)
+                    {
+                        return false;
+                    }
+
+                    Current = Math.Min(length, _start + _index++ * period);
+                }
+                else
+                {
+                    if (_next > length)
+                    {
+                        return false;
+                    }
+
+                    Current = _next;
+                    _next += period;
+                    if (_next <= Current)
+                    {
+                        _next = double.PositiveInfinity;
+                    }
                 }
 
-                distance = next;
+                return true;
             }
         }
 
-        static bool GetPattern(Stroke stroke, out double dash, out double period, out double phase)
+        static bool GetPattern(in Stroke stroke, out double dash, out double period, out double phase)
         {
             dash = stroke.Style == BorderStyle.Dotted ? stroke.Width : stroke.DashLength;
             period = dash + Math.Max(0, stroke.Gap);
@@ -345,7 +555,7 @@ public readonly ref partial struct Painter
             return true;
         }
 
-        static void AddRun(List<PathPrimitive> primitives, ReadOnlySpan<Vector2> points, Stroke stroke, bool closed)
+        static void AddRun(Span<PathPrimitive> primitives, ref int primitiveCount, ReadOnlySpan<Vector2> points, in Stroke stroke, bool closed)
         {
             if (points.Length < 2)
             {
@@ -361,54 +571,56 @@ public readonly ref partial struct Painter
 
                 int caps = !closed && stroke.Cap == Stroke.LineCap.Square ? (i == 0 ? PathCap.SquareStart : 0) | (i + 2 == points.Length ? PathCap.SquareEnd : 0) : 0;
                 bool pointed = !closed && (stroke.Cap == Stroke.LineCap.Triangle || stroke.Cap == Stroke.LineCap.Arrow);
-                primitives.Add(new PathPrimitive
+                primitives[primitiveCount++] = new PathPrimitive
                 {
                     Kind = PathPrimitiveKind.Segment,
                     A = Pack(points[i], points[i + 1]),
                     B = new Vector4(pointed && i == 0 ? (int)stroke.Cap : (int)Stroke.LineCap.Butt, pointed && i + 2 == points.Length ? (int)stroke.Cap : (int)Stroke.LineCap.Butt, 0, 0),
                     Count = caps,
-                });
+                };
                 if (i > 0)
                 {
-                    AddJoin(primitives, points[i - 1], points[i], points[i + 1], stroke);
+                    AddJoin(primitives, ref primitiveCount, points[i - 1], points[i], points[i + 1], stroke);
                 }
             }
             if (closed)
             {
-                AddJoin(primitives, points[^2], points[0], points[1], stroke);
+                AddJoin(primitives, ref primitiveCount, points[^2], points[0], points[1], stroke);
             }
             else if (stroke.Cap == Stroke.LineCap.Round)
             {
-                AddDisc(primitives, points[0]);
-                AddDisc(primitives, points[^1]);
+                AddDisc(primitives, ref primitiveCount, points[0]);
+                AddDisc(primitives, ref primitiveCount, points[^1]);
             }
         }
 
-        static void AddJoin(List<PathPrimitive> primitives, Vector2 a, Vector2 b, Vector2 c, Stroke stroke)
+        static void AddJoin(Span<PathPrimitive> primitives, ref int primitiveCount, Vector2 a, Vector2 b, Vector2 c, in Stroke stroke)
         {
-            var incoming = (b - a).Normal;
-            var outgoing = (c - b).Normal;
-            float cross = incoming.X * outgoing.Y - incoming.Y * outgoing.X;
-            float incomingLength = (b - a).Length();
-            float outgoingLength = (c - b).Length();
+            var incoming = b - a;
+            var outgoing = c - b;
+            float incomingLength = incoming.Length();
+            float outgoingLength = outgoing.Length();
+            incoming = incoming.LengthSquared() <= 1e-8f ? Vector2.Zero : incoming / incomingLength;
+            outgoing = outgoing.LengthSquared() <= 1e-8f ? Vector2.Zero : outgoing / outgoingLength;
             if (stroke.Join == Stroke.LineJoin.Round)
             {
-                primitives.Add(new PathPrimitive
+                primitives[primitiveCount++] = new PathPrimitive
                 {
                     Kind = PathPrimitiveKind.RoundJoin,
                     Count = 4,
                     A = Pack(b, default),
                     B = new Vector4(incomingLength, outgoingLength, 0, 0),
                     C = Pack(incoming, outgoing),
-                });
+                };
                 return;
             }
+            float cross = incoming.X * outgoing.Y - incoming.Y * outgoing.X;
             if (MathF.Abs(cross) < 0.00001f)
             {
                 if (Vector2.Dot(incoming, outgoing) > 0)
                 {
                     float overlap = MathF.Min(MathF.Min(incomingLength, outgoingLength) * 0.5f, MathF.Max(stroke.Width, 1));
-                    primitives.Add(new PathPrimitive { Kind = PathPrimitiveKind.Segment, A = Pack(b - incoming * overlap, b + outgoing * overlap) });
+                    primitives[primitiveCount++] = new PathPrimitive { Kind = PathPrimitiveKind.Segment, A = Pack(b - incoming * overlap, b + outgoing * overlap) };
                     return;
                 }
                 return;
@@ -423,19 +635,19 @@ public readonly ref partial struct Painter
             bool useMiter = stroke.Join == Stroke.LineJoin.Miter && IsFinite(miter) && miter.Length() <= limit;
             var inner0 = outgoing * (MathF.Min(stroke.Width, outgoingLength) * 0.5f);
             var inner1 = -incoming * (MathF.Min(stroke.Width, incomingLength) * 0.5f);
-            primitives.Add(new PathPrimitive
+            primitives[primitiveCount++] = new PathPrimitive
             {
                 Kind = PathPrimitiveKind.Join,
                 Count = useMiter ? 5 : 4,
                 A = Pack(b, n0),
                 B = Pack(useMiter ? miter : n1, useMiter ? n1 : inner0),
                 C = Pack(useMiter ? inner0 : inner1, useMiter ? inner1 : default),
-            });
+            };
         }
 
-        static void AddDisc(List<PathPrimitive> primitives, Vector2 point)
+        static void AddDisc(Span<PathPrimitive> primitives, ref int primitiveCount, Vector2 point)
         {
-            primitives.Add(new PathPrimitive { Kind = PathPrimitiveKind.Disc, A = Pack(point, default) });
+            primitives[primitiveCount++] = new PathPrimitive { Kind = PathPrimitiveKind.Disc, A = Pack(point, default) };
         }
         static Vector4 Pack(Vector2 a, Vector2 b) => new(a.X, a.Y, b.X, b.Y);
         static Vector2 Direction(double angle) => new((float)Math.Cos(angle), (float)Math.Sin(angle));
@@ -465,14 +677,15 @@ public readonly ref partial struct Painter
             return IsFinite(bounds.Size) && float.IsFinite(bounds.Size.Length());
         }
 
-        static Rect PrimitiveBounds(PathPrimitive p, float radius)
+        static Rect PrimitiveBounds(in PathPrimitive p, float radius)
         {
             var center = new Vector2(p.A.X, p.A.Y);
             if (p.Kind == PathPrimitiveKind.Segment)
             {
                 var end = new Vector2(p.A.Z, p.A.W);
                 var bounds = Socotra.Rect.FromPoints(center, end).Grow(p.Count == 0 ? radius : radius * MathF.Sqrt(2));
-                if (p.B.X == (int)Stroke.LineCap.Butt && p.B.Y == (int)Stroke.LineCap.Butt)
+                if (p.B.X != (int)Stroke.LineCap.Triangle && p.B.X != (int)Stroke.LineCap.Arrow
+                    && p.B.Y != (int)Stroke.LineCap.Triangle && p.B.Y != (int)Stroke.LineCap.Arrow)
                 {
                     return bounds;
                 }
@@ -529,18 +742,18 @@ public readonly ref partial struct Painter
             return new Rect(center + min * radius, (max - min) * radius);
         }
 
-        static bool GetPrimitiveBounds(List<PathPrimitive> primitives, float radius, out Rect bounds)
+        static bool GetPrimitiveBounds(ReadOnlySpan<PathPrimitive> primitives, float radius, out Rect bounds)
         {
             bounds = default;
-            if (primitives.Count == 0)
+            if (primitives.IsEmpty)
             {
                 return false;
             }
 
             bounds = PrimitiveBounds(primitives[0], radius);
-            foreach (var primitive in primitives)
+            for (int i = 0; i < primitives.Length; i++)
             {
-                var rect = PrimitiveBounds(primitive, radius);
+                var rect = i == 0 ? bounds : PrimitiveBounds(primitives[i], radius);
                 if (!IsFinite(rect.Position) || !IsFinite(rect.Size) || !IsFinite(rect.BottomRight))
                 {
                     return false;
@@ -556,35 +769,47 @@ public readonly ref partial struct Painter
             return Socotra.Rect.FromPoints(new(endpoints.X, endpoints.Y), new(endpoints.Z, endpoints.W));
         }
 
-        static Data PolygonMask(ReadOnlySpan<Vector2> points)
+        internal readonly record struct AlignmentMask(int ShapeIndex, Rect? Bounds);
+
+        static AlignmentMask PolygonMask(Painter.Context buffer, ReadOnlySpan<Vector2> points)
         {
-            var edges = new PathPrimitive[points.Length];
+            using var edgeBuffer = new PooledSpan<PathPrimitive>(points.Length);
+            var edges = edgeBuffer.Span;
             for (int i = 0; i < points.Length; i++)
             {
                 edges[i] = new() { Kind = PathPrimitiveKind.Segment, A = Pack(points[i], points[(i + 1) % points.Length]) };
             }
 
-            return new Data(new() { Kind = ShapeKind.PolygonPath }, edges);
+            GetBounds(points, out var bounds);
+            var index = buffer.Batcher.AddPath(new ShapeInstance { Kind = ShapeKind.PolygonPath }, edges);
+            return new(index, bounds);
         }
 
-        internal static Data CircleMask(Vector2 center, float outerRadius, float innerRadius = 0)
-            => new(new() { Kind = ShapeKind.Circle, Circle = new Vector4(center.X, center.Y, outerRadius, innerRadius) }, []);
-
-        static void EmitStroke(Painter.Context buffer, List<PathPrimitive> primitives, Stroke stroke, Rect paintBounds, Data? alignmentMask)
+        internal static AlignmentMask CircleMask(Painter.Context buffer, Vector2 center, float outerRadius, float innerRadius = 0)
         {
-            if (!GetPrimitiveBounds(primitives, stroke.Width * 0.5f, out var bounds))
+            var shape = new ShapeInstance
+            {
+                Kind = ShapeKind.Circle,
+                Circle = new Vector4(center.X, center.Y, outerRadius, innerRadius),
+            };
+            return new(buffer.Batcher.AddShape(shape), new Rect(center - new Vector2(outerRadius), new Vector2(outerRadius * 2)));
+        }
+
+        static void EmitStroke(Painter.Context buffer, ReadOnlySpan<PathPrimitive> primitives, in Stroke stroke, Rect paintBounds, AlignmentMask? alignmentMask, Rect? strokeBounds = null)
+        {
+            if (!buffer.State.HasArea || buffer.State.Opacity == 0)
             {
                 return;
             }
 
-            if (alignmentMask is not null && stroke.Alignment == Stroke.StrokeAlignment.Inside && alignmentMask.Shape.Kind < ShapeKind.FirstAnalytic)
+            var bounds = strokeBounds.GetValueOrDefault();
+            if (!strokeBounds.HasValue && !GetPrimitiveBounds(primitives, stroke.Width * 0.5f, out bounds))
             {
-                var circle = alignmentMask.Shape.Circle;
-                var maskBounds = alignmentMask.Shape.Kind == ShapeKind.Circle
-                    ? new Rect(new Vector2(circle.X - circle.Z, circle.Y - circle.Z), new Vector2(circle.Z * 2))
-                    : new Rect(alignmentMask.Nodes[0].Bounds.X, alignmentMask.Nodes[0].Bounds.Y,
-                        alignmentMask.Nodes[0].Bounds.Z - alignmentMask.Nodes[0].Bounds.X,
-                        alignmentMask.Nodes[0].Bounds.W - alignmentMask.Nodes[0].Bounds.Y);
+                return;
+            }
+
+            if (alignmentMask?.Bounds is { } maskBounds && stroke.Alignment == Stroke.StrokeAlignment.Inside)
+            {
                 bounds = Socotra.Rect.Intersect(bounds, maskBounds);
                 paintBounds = Socotra.Rect.Intersect(paintBounds, maskBounds);
                 if (!ValidBounds(bounds) || !ValidBounds(paintBounds))
@@ -592,14 +817,10 @@ public readonly ref partial struct Painter
                     return;
                 }
             }
-            var desc = stroke.Fill.CreateDescriptor(paintBounds, buffer, clipFill: false);
-            desc.Rect = bounds;
-            desc.BackgroundRect.X += paintBounds.Left - bounds.Left;
-            desc.BackgroundRect.Y += paintBounds.Top - bounds.Top;
-            desc.BorderShapeData = new ShapeInstance { Kind = ShapeKind.StrokePath, Circle = new Vector4(bounds.Left, bounds.Top, stroke.Width, alignmentMask is null ? 0 : stroke.Alignment == Stroke.StrokeAlignment.Inside ? 1 : -1) };
-            var data = CollectionsMarshal.AsSpan(primitives);
-            desc.PathData = new Data(desc.BorderShapeData, data, alignmentMask);
-            Add(buffer, desc);
+
+            var shape = new ShapeInstance { Kind = ShapeKind.StrokePath, Circle = new Vector4(bounds.Left, bounds.Top, stroke.Width, alignmentMask is null ? 0 : stroke.Alignment == Stroke.StrokeAlignment.Inside ? 1 : -1) };
+            var shapeIndex = buffer.Batcher.AddPath(shape, primitives, alignmentMask is { } mask ? mask.ShapeIndex + 1 : 0);
+            AddShape(buffer, Stroke.GetFill(in stroke), bounds, paintBounds, shapeIndex, clipFill: false);
         }
     }
 }

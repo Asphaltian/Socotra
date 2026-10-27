@@ -101,7 +101,7 @@ public partial class Panel
         }
     }
 
-    /// <summary>Whether the panel has this class.</summary>
+    /// <summary>Returns <c>true</c> if the panel has this class.</summary>
     public bool HasClass(string classname) => !string.IsNullOrWhiteSpace(classname) && (_classSet?.Contains(classname) ?? false);
 
     bool IStyleTarget.HasClasses(string[] classes) => _classSet is not null && classes.All(_classSet.Contains);

@@ -4,8 +4,8 @@ public readonly ref partial struct Painter
 {
     /// <summary>
     /// Cuts off anything you draw from now on that falls outside <paramref name="rect"/>, optionally with rounded corners.
-    /// Each clip narrows the ones before it. Call it inside <see cref="Scope"/> to get rid of it again, and set up your
-    /// transform first: moving the transform afterwards doesn't move the clip.
+    /// Each clip narrows the ones before it. Call it inside <see cref="Scope"/> so you can get rid of it again, and make
+    /// sure you set up your transform first, since moving the transform afterwards doesn't move the clip.
     /// </summary>
     /// <example>
     /// <code>

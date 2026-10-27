@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>A size for each of the four edges, in pixels, like a panel's padding or border widths.</summary>
+/// <summary><c>Margin</c> is a size in pixels for each of the four edges, like a panel's padding or border widths.</summary>
 public readonly record struct Margin(float Left, float Top, float Right, float Bottom)
 {
     /// <summary>A margin of <paramref name="all"/> pixels on every edge.</summary>

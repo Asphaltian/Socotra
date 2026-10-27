@@ -1,14 +1,14 @@
 namespace Socotra;
 
 /// <summary>
-/// One frame of drawing, ready to hand to a renderer. Fill it with <see cref="RootPanel.Paint"/> or
-/// <see cref="Painter.Begin(DrawList, Rect)"/>. Keep one per window and fill it again each frame.
+/// <c>DrawList</c> is one frame of drawing, ready to give to a renderer. You fill it with <see cref="RootPanel.Paint"/>
+/// or <see cref="Painter.Begin(DrawList, Rect)"/>. Keep one for each window, and fill it again on every frame.
 /// </summary>
 /// <example>
 /// <code>
 /// var list = new DrawList();
 ///
-/// // every frame, after drawing your scene into the image; the UI draws over it
+/// // every frame, after drawing your scene into the image, so the UI draws over it
 /// root.Update(new Rect(0, 0, width, height), deltaTime);
 /// root.Paint(list);
 /// renderer.Record(commandBuffer, list, target, ImageLayout.ColorAttachmentOptimal, ImageLayout.PresentSrcKhr);
@@ -82,4 +82,4 @@ internal sealed record DropShadowCommand(int Layer, QuadPlacement Placement, Rec
 
 internal sealed record BorderWrapCommand(int Layer, QuadPlacement Placement, Rect Box, float Width, Color Color) : DrawCommand;
 
-internal sealed record BackdropCommand(QuadPlacement Placement, Rect Box, BorderRadii Radii, Painter.Filter Filter, Color Tint, bool ReuseGrab) : DrawCommand;
+internal sealed record BackdropCommand(QuadPlacement Placement, Rect Box, BorderRadii Radii, Painter.Filter Filter, Color Tint, bool ReuseGrab, int ShapeIndex) : DrawCommand;

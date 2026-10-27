@@ -278,15 +278,13 @@ public class LayoutRegressionTests
     [InlineData(" \tAUTO\r\n")]
     public void AutoPlacementDoesNotAllocate(string text)
     {
-        GridParser.TryParsePlacement(text, out _);
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 100; i++)
+        Allocations.AssertSettles("100 placement parses", () =>
         {
-            GridParser.TryParsePlacement(text, out _);
-        }
-
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.Equal(0L, allocated);
+            for (int i = 0; i < 100; i++)
+            {
+                GridParser.TryParsePlacement(text, out _);
+            }
+        });
         Assert.True(GridParser.TryParsePlacement(text, out var result));
         Assert.Equal(GridPlacement.Auto, result);
         Assert.False(GridParser.TryParsePlacement("auto extra", out _));
@@ -326,22 +324,13 @@ public class LayoutRegressionTests
             current = current.GetChild(0);
         }
 
-        long allocated = 0;
-        for (int pass = 0; pass < 12; pass++)
+        Allocations.AssertSettles($"{display}, depth {depth}, breadth {breadth}: a dirty layout", () => root.CalculateLayout(), () =>
         {
             foreach (var node in nodes)
             {
                 node.MarkDirty();
             }
-
-            var before = GC.GetAllocatedBytesForCurrentThread();
-            root.CalculateLayout();
-            if (pass >= 8)
-            {
-                allocated += GC.GetAllocatedBytesForCurrentThread() - before;
-            }
-        }
-        Assert.Equal(0L, allocated);
+        });
     }
 
     [Theory]

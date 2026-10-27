@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>The properties that animate smoothly when they change, as set by <c>transition</c> and its longhands.</summary>
+/// <summary><c>TransitionList</c> holds the properties that animate smoothly when they change, the way <c>transition</c> and its longhands set them.</summary>
 public sealed class TransitionList
 {
     /// <summary>How each property transitions, one entry per property.</summary>

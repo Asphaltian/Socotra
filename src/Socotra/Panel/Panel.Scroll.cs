@@ -17,7 +17,7 @@ public partial class Panel
     /// </summary>
     public bool PreferScrollToBottom { get; set; }
 
-    /// <summary>Whether the panel is scrolled all the way to the bottom and staying there. See <see cref="PreferScrollToBottom"/>.</summary>
+    /// <summary>Returns <c>true</c> while the panel is scrolled all the way to the bottom and staying there, like <see cref="PreferScrollToBottom"/> does.</summary>
     public bool IsScrollAtBottom { get; private set; }
 
     internal bool IsScrollAxisReversed => ComputedStyle is { } style

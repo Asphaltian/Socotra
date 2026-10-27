@@ -2,8 +2,20 @@ namespace Socotra;
 
 public partial class Panel
 {
-    /// <summary>Whether the panel can take input focus, which gets it key presses. Tab and the arrow keys move between panels that accept focus.</summary>
+    /// <summary>
+    /// Set this to <c>true</c> if the panel should be able to take focus, so it gets key presses. Tab and the arrow keys
+    /// move between panels that accept focus.
+    /// </summary>
     public bool AcceptsFocus { get; set; }
+
+    /// <summary>
+    /// Whether clicking the panel gives it focus, which is <c>true</c> by default. Set it to <c>false</c> on things that
+    /// should only get focus from the keyboard, like buttons. Clicking one of those focuses the nearest parent that
+    /// takes focus from a click instead, the same way a browser does it.
+    /// </summary>
+    public bool FocusOnClick { get; set; } = true;
+
+    internal virtual Panel? FocusOwner => Parent;
 
     /// <summary>
     /// Where the panel sits in the Tab order. 0, the default, is tree order. Positive values come
@@ -12,13 +24,13 @@ public partial class Panel
     /// </summary>
     public int TabIndex { get; set; }
 
-    /// <summary>Whether the panel takes text from an input method editor, for typing languages like Japanese. Text entry controls return true.</summary>
+    /// <summary>Return <c>true</c> if the panel takes text from an input method editor, which is how people type languages like Japanese. Text entries return <c>true</c>.</summary>
     public virtual bool AcceptsImeInput => false;
 
     /// <summary>Where the mouse is, relative to the panel's top left corner.</summary>
     public Vector2 MousePosition => ScreenPositionToPanelPosition(ScreenMousePosition);
 
-    /// <summary>Whether this panel has the mouse captured. See <see cref="SetMouseCapture"/>.</summary>
+    /// <summary>Returns <c>true</c> while this panel has the mouse captured with <see cref="SetMouseCapture"/>.</summary>
     public bool HasMouseCapture => FindRootPanel()?.Input.MouseCapture == this;
 
     internal Vector2 ScreenMousePosition => FindRootPanel()?.Input.MousePosition ?? Vector2.Zero;
@@ -44,10 +56,10 @@ public partial class Panel
     /// </summary>
     public void SetMouseCapture(bool b) => FindRootPanel()?.Input.SetMouseCapture(this, b);
 
-    /// <summary>Whether this panel is entirely inside a rectangle on screen, or overlaps it at all when <paramref name="fullyInside"/> is false.</summary>
+    /// <summary>Returns <c>true</c> if this panel is entirely inside a rectangle on the screen, or if it overlaps it at all when <paramref name="fullyInside"/> is <c>false</c>.</summary>
     public bool IsInside(Rect rect, bool fullyInside) => Box.Rect.IsInside(rect, fullyInside);
 
-    /// <summary>Whether a point on screen is over this panel. Transforms, rounded corners and <c>border-shape</c> count.</summary>
+    /// <summary>Returns <c>true</c> if a point on the screen is over this panel. Transforms, rounded corners and <c>border-shape</c> are all taken into account.</summary>
     public bool IsInside(Vector2 point) => IsInsideUntransformed(GlobalMatrix is { } matrix ? matrix.Transform(point) : point);
 
     internal bool IsInsideUntransformed(Vector2 point)

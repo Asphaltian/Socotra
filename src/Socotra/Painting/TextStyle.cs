@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// How <see cref="Painter.Text"/> draws text: font, size, color, alignment, spacing, shadow and outline. Set it on
-/// <see cref="Painter.TextStyle"/>. Sizes are in pixels and grow with the panel's <see cref="Panel.ScaleToScreen"/>.
+/// <c>TextStyle</c> is how <see cref="Painter.Text"/> draws text, with its font, size, color, alignment, spacing, shadow
+/// and outline. Set it on <see cref="Painter.TextStyle"/>. Sizes are in pixels, and they grow with the panel's
+/// <see cref="Panel.ScaleToScreen"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -63,10 +64,10 @@ public readonly partial record struct TextStyle
     /// <summary>Extra space between words, in pixels.</summary>
     public float WordSpacing { get; init; }
 
-    /// <summary>A drop shadow behind the text. Off unless you set it; <see cref="WithShadow(Color?, float, Vector2?)"/> is the easy way.</summary>
+    /// <summary>A drop shadow behind the text. It's off unless you set it, and <see cref="WithShadow(Color?, float, Vector2?)"/> is the easiest way to do that.</summary>
     public TextRendering.Shadow Shadow { get; init; }
 
-    /// <summary>An outline around the text. Off unless you set it; <see cref="WithOutline"/> is the easy way.</summary>
+    /// <summary>An outline around the text. It's off unless you set it, and <see cref="WithOutline"/> is the easiest way to do that.</summary>
     public TextRendering.Outline Outline { get; init; }
 
     internal void Validate()

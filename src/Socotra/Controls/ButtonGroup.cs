@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A row of buttons where one is picked at a time. The picked one has the <c>active</c> class. Fill it from
-/// <see cref="Options"/>, or add buttons yourself and give each a <see cref="Button.Value"/>.
+/// <c>ButtonGroup</c> is a row of buttons where only one can be picked at a time, and the picked one has the
+/// <c>active</c> class. You can fill it from <see cref="Options"/>, or add buttons yourself and give each of them a
+/// <see cref="Button.Value"/>.
 /// </summary>
 /// <example>
 /// <code>

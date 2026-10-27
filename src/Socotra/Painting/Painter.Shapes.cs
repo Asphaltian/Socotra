@@ -1,22 +1,27 @@
 using System.Buffers;
-using System.Runtime.InteropServices;
 
 namespace Socotra;
 
 public readonly ref partial struct Painter
 {
     /// <summary>
-    /// Draws a line through <paramref name="points"/> with <see cref="Stroke"/>. It isn't closed; for a closed outline,
-    /// use <see cref="Polygon"/> with <see cref="Socotra.Fill.None"/>.
+    /// Draws a line through <paramref name="points"/> with <see cref="Stroke"/>. Keep in mind that it isn't closed, so if
+    /// you want a closed outline, use <see cref="Polygon"/> with <see cref="Socotra.Fill.None"/>.
     /// </summary>
     public void Line(ReadOnlySpan<Vector2> points)
-        => Path.DrawPolyline(ActiveContext, points, Stroke);
+    {
+        var context = ActiveContext;
+        Path.DrawPolyline(context, points, in context.State.Stroke);
+    }
 
     /// <summary>
     /// Draws a straight line from <paramref name="from"/> to <paramref name="to"/> with <see cref="Stroke"/>.
     /// </summary>
     public void Line(Vector2 from, Vector2 to)
-        => Line([from, to]);
+    {
+        var context = ActiveContext;
+        Path.DrawSimpleLine(context, from, to, in context.State.Stroke);
+    }
 
     /// <summary>
     /// Draws a closed shape through <paramref name="points"/> with <see cref="Fill"/> and <see cref="Stroke"/>. It can be
@@ -25,14 +30,21 @@ public readonly ref partial struct Painter
     public void Polygon(ReadOnlySpan<Vector2> points)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(points.Length, 3);
-        if (!Fill.IsTransparent)
+        var context = ActiveContext;
+        ref var state = ref context.State;
+        if (Path.TryDrawOutlinedPolygon(context, points))
         {
-            Path.DrawPolygon(ActiveContext, points, Fill);
+            return;
         }
 
-        if (HasStroke(Stroke))
+        if (!state.Fill.IsTransparent)
         {
-            Path.DrawPolyline(ActiveContext, points, Stroke, closed: true);
+            Path.DrawPolygon(context, points, in state.Fill);
+        }
+
+        if (HasStroke(state.Stroke))
+        {
+            Path.DrawPolyline(context, points, in state.Stroke, closed: true);
         }
     }
 
@@ -67,7 +79,7 @@ public readonly ref partial struct Painter
         var combined = TryGetBoxStroke(state.Stroke, out var border);
         if (!state.Fill.IsTransparent || combined)
         {
-            var desc = state.Fill.CreateDescriptor(rect, context);
+            state.Fill.CreateDescriptor(rect, context, out var desc);
             desc.Radii = radii;
             SetBorderShape(ref desc, shape);
             if (combined)
@@ -237,7 +249,18 @@ public readonly ref partial struct Painter
             return;
         }
 
-        var mask = Stroke.Alignment == Stroke.StrokeAlignment.Center ? null : Path.CircleMask(center, outerRadius, innerRadius);
+        var context = ActiveContext;
+        if (!context.State.HasArea || context.State.Opacity == 0)
+        {
+            return;
+        }
+
+        if (Stroke.Alignment != Stroke.StrokeAlignment.Center && !float.IsFinite(Stroke.Width * 2))
+        {
+            return;
+        }
+
+        Path.AlignmentMask? mask = Stroke.Alignment == Stroke.StrokeAlignment.Center ? null : Path.CircleMask(context, center, outerRadius, innerRadius);
         Path.DrawArc(ActiveContext, center, outerRadius, 0, 360, Stroke, mask);
         Path.DrawArc(ActiveContext, center, innerRadius, 0, 360, Stroke, mask);
     }
@@ -285,14 +308,14 @@ public readonly ref partial struct Painter
 
     /// <summary>
     /// Draws part of a circle's edge with <see cref="Stroke"/>. It starts at <paramref name="startAngle"/> and covers
-    /// <paramref name="sweepAngle"/>, both in degrees clockwise from the right; a negative sweep goes counterclockwise.
+    /// <paramref name="sweepAngle"/>, both in degrees clockwise from the right, and a negative sweep goes counterclockwise.
     /// </summary>
     public void Arc(Vector2 center, float radius, float startAngle, float sweepAngle)
         => Path.DrawArc(ActiveContext, center, radius, startAngle, sweepAngle, Stroke);
 
     /// <summary>
     /// Draws a pie slice with <see cref="Fill"/> and <see cref="Stroke"/>. It starts at <paramref name="startAngle"/> and
-    /// covers <paramref name="sweepAngle"/>, both in degrees clockwise from the right; a negative sweep goes counterclockwise.
+    /// covers <paramref name="sweepAngle"/>, both in degrees clockwise from the right, and a negative sweep goes counterclockwise.
     /// </summary>
     public void Pie(Vector2 center, float radius, float startAngle, float sweepAngle)
     {
@@ -340,12 +363,49 @@ public readonly ref partial struct Painter
             return;
         }
 
-        var points = new List<Vector2> { from };
-        FlattenBezier(points, from, control1, control2, to);
-        Line(CollectionsMarshal.AsSpan(points));
+        var points = new CurvePoints(from);
+        try
+        {
+            FlattenBezier(ref points, from, control1, control2, to);
+            Line(points.Span);
+        }
+        finally
+        {
+            points.Dispose();
+        }
     }
 
-    static void FlattenBezier(List<Vector2> points, Vector2 a, Vector2 b, Vector2 c, Vector2 d, int depth = 0)
+    ref struct CurvePoints
+    {
+        Vector2[] _points;
+        int _count;
+
+        public CurvePoints(Vector2 first)
+        {
+            _points = ArrayPool<Vector2>.Shared.Rent(16);
+            _points[0] = first;
+            _count = 1;
+        }
+
+        public readonly ReadOnlySpan<Vector2> Span => _points.AsSpan(0, _count);
+
+        public void Add(Vector2 point)
+        {
+            if (_count == _points.Length)
+            {
+                var grown = ArrayPool<Vector2>.Shared.Rent(checked(_count * 2));
+                _points.AsSpan(0, _count).CopyTo(grown);
+                ArrayPool<Vector2>.Shared.Return(_points);
+                _points = grown;
+            }
+
+            _points[_count++] = point;
+        }
+
+        public readonly void Dispose() => ArrayPool<Vector2>.Shared.Return(_points);
+    }
+
+    static void FlattenBezier(ref CurvePoints points, Vector2 a, Vector2 b, Vector2 c, Vector2 d, int depth = 0)
     {
         if (depth == 12 || (DistanceToSegmentSquared(b, a, d) <= 0.0625 && DistanceToSegmentSquared(c, a, d) <= 0.0625))
         {
@@ -358,15 +418,15 @@ public readonly ref partial struct Painter
         var abc = ab * 0.5f + bc * 0.5f;
         var bcd = bc * 0.5f + cd * 0.5f;
         var middle = abc * 0.5f + bcd * 0.5f;
-        FlattenBezier(points, a, ab, abc, middle, depth + 1);
-        FlattenBezier(points, middle, bcd, cd, d, depth + 1);
+        FlattenBezier(ref points, a, ab, abc, middle, depth + 1);
+        FlattenBezier(ref points, middle, bcd, cd, d, depth + 1);
     }
 
     /// <summary>
     /// Draws a star with <see cref="Fill"/> and <see cref="Stroke"/>. <paramref name="bodyRadius"/> reaches the inner
-    /// corners and <paramref name="spikeLength"/> is how far the tips stick out past them; a spike length of 0 gives a
-    /// regular polygon. The first tip points up unless you change <paramref name="rotation"/> (degrees clockwise from
-    /// the right).
+    /// corners and <paramref name="spikeLength"/> is how far the tips stick out past them, so a spike length of 0 gives
+    /// you a regular polygon. The first tip points up unless you change <paramref name="rotation"/>, which is in degrees
+    /// clockwise from the right.
     /// </summary>
     public void Star(Vector2 center, float bodyRadius, float spikeLength, int points = 5, float rotation = -90)
     {
@@ -421,7 +481,7 @@ public readonly ref partial struct Painter
 
     /// <summary>
     /// Draws a check mark with <see cref="Fill"/> and <see cref="Stroke"/>. <paramref name="width"/> is how thick it is
-    /// and <paramref name="length"/> how wide; the width can be at most half the length.
+    /// and <paramref name="length"/> is how wide. Keep in mind that the width can be at most half the length.
     /// </summary>
     public void Tick(Vector2 center, float width, float length)
     {
@@ -472,15 +532,15 @@ public readonly ref partial struct Painter
     }
 
     /// <summary>
-    /// Draws <see cref="Stroke"/> just outside <paramref name="rect"/>, like CSS <c>outline</c>. A positive
-    /// <paramref name="offset"/> moves it further out; a negative one moves it in.
+    /// Draws <see cref="Stroke"/> just outside <paramref name="rect"/>, just like CSS <c>outline</c>. A positive
+    /// <paramref name="offset"/> moves it further out, and a negative one moves it in.
     /// </summary>
     public void Outline(Rect rect, float cornerRadius = 0, float offset = 0)
         => Outline(rect, new CornerRadii(cornerRadius), offset);
 
     /// <summary>
     /// Draws <see cref="Stroke"/> just outside <paramref name="rect"/>, with each corner rounded its own way. A positive
-    /// <paramref name="offset"/> moves it further out; a negative one moves it in.
+    /// <paramref name="offset"/> moves it further out, and a negative one moves it in.
     /// </summary>
     public void Outline(Rect rect, CornerRadii corners, float offset = 0)
     {
@@ -505,7 +565,7 @@ public readonly ref partial struct Painter
         }
 
         var radius = rect.Size * 0.5f;
-        var desc = fill.CreateDescriptor(rect, ActiveContext);
+        fill.CreateDescriptor(rect, ActiveContext, out var desc);
         desc.Radii = new BorderRadii { TopLeft = radius, TopRight = radius, BottomLeft = radius, BottomRight = radius };
         Add(ActiveContext, desc);
     }
@@ -521,7 +581,7 @@ public readonly ref partial struct Painter
         return px * px + py * py;
     }
 
-    static bool HasStroke(Stroke stroke) => !stroke.IsDisabled && float.IsFinite(stroke.Width) && stroke.Width > 0 && !stroke.Fill.IsTransparent;
+    static bool HasStroke(in Stroke stroke) => !stroke.IsDisabled && float.IsFinite(stroke.Width) && stroke.Width > 0 && !Stroke.GetFill(in stroke).IsTransparent;
 
     static bool ValidBounds(Rect rect) => IsFinite(rect.Position)
         && float.IsFinite(rect.Width) && float.IsFinite(rect.Height) && rect.Width > 0 && rect.Height > 0
@@ -550,7 +610,7 @@ public readonly ref partial struct Painter
 
     /// <summary>
     /// How much each corner of a rectangle is rounded. Each corner takes a horizontal and a vertical radius, so corners
-    /// can be oval. A plain number works anywhere one of these is asked for.
+    /// can be oval too. You can use a plain number anywhere one of these is asked for.
     /// </summary>
     public readonly record struct CornerRadii(Vector2 TopLeft, Vector2 TopRight, Vector2 BottomRight, Vector2 BottomLeft)
     {

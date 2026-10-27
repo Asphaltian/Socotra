@@ -5,8 +5,8 @@ using Svg.Skia;
 namespace Socotra;
 
 /// <summary>
-/// A picture you can show in an <see cref="Image"/> or use as a background, mask or border image.
-/// Load one from a file, draw one from SVG markup, or make one from your own RGBA pixels.
+/// <c>Texture</c> is a picture that you can show in an <see cref="Image"/>, or use as a background, mask or border
+/// image. You can load one from a file, draw one from SVG markup, or create one from your own RGBA pixels.
 /// </summary>
 /// <example><code>
 /// // Show a picture that ships next to your program
@@ -46,10 +46,10 @@ public sealed class Texture
     /// <summary>The RGBA pixels, four bytes each, from the top row down. Use <see cref="Update"/> to change them. Empty for a render target.</summary>
     public byte[] Pixels { get; }
 
-    /// <summary>Whether the pixels' colors are already multiplied by their alpha.</summary>
+    /// <summary>Returns <c>true</c> if the colors of the pixels are already multiplied by their alpha.</summary>
     public bool PremultipliedAlpha { get; private init; }
 
-    /// <summary>Whether it was made with <see cref="CreateRenderTarget"/>, so you draw into it with <see cref="Painter.Begin(Texture)"/>.</summary>
+    /// <summary>Returns <c>true</c> if it was created with <see cref="CreateRenderTarget"/>, which means you can draw into it with <see cref="Painter.Begin(Texture)"/>.</summary>
     public bool IsRenderTarget { get; private init; }
 
     internal int DirtyVersion { get; private set; }
@@ -81,7 +81,7 @@ public sealed class Texture
     /// texture.Update(corner, 0, 0, 16, 16);
     /// </code></example>
     /// <exception cref="ArgumentOutOfRangeException">The rectangle doesn't fit inside the picture, or <paramref name="data"/> is too short to fill it.</exception>
-    /// <exception cref="InvalidOperationException">It's a render target; draw into it with <see cref="Painter.Begin(Texture)"/> instead.</exception>
+    /// <exception cref="InvalidOperationException">It's a render target, so draw into it with <see cref="Painter.Begin(Texture)"/> instead.</exception>
     public void Update(ReadOnlySpan<byte> data, int x = 0, int y = 0, int width = 0, int height = 0)
     {
         if (IsRenderTarget)
@@ -146,9 +146,9 @@ public sealed class Texture
 
     /// <summary>
     /// Loads a PNG, JPEG, WebP, GIF or SVG. A relative <paramref name="path"/> starts from your program's folder.
-    /// An SVG takes a size and a color after its name, like <c>icons/save.svg?w=64&amp;h=64&amp;color=white</c>; see
-    /// <see cref="FromSvg"/>. Loading the same file twice gives you the same texture, so an <see cref="Update"/> shows up
-    /// everywhere it's used.
+    /// An SVG takes a size and a color after its name, like <c>icons/save.svg?w=64&amp;h=64&amp;color=white</c>, the same
+    /// way as <see cref="FromSvg"/>. Keep in mind that loading the same file twice gives you the same texture, so an
+    /// <see cref="Update"/> shows up everywhere it's used.
     /// </summary>
     /// <exception cref="IOException">The file can't be read or isn't an image.</exception>
     public static Texture FromFile(string path)

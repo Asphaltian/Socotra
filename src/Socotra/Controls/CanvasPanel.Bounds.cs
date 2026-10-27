@@ -4,10 +4,10 @@ public partial class CanvasPanel
 {
     private Rect? _navigationBounds;
 
-    /// <summary>Keeps the view inside the left and right edges of <see cref="NavigationBounds"/>. On by default.</summary>
+    /// <summary>Keeps the view inside the left and right edges of <see cref="NavigationBounds"/>. It's on by default.</summary>
     public bool ConstrainHorizontalNavigation { get; set; } = true;
 
-    /// <summary>Keeps the view inside the top and bottom edges of <see cref="NavigationBounds"/>. Turn it off to let the user pan and zoom freely up and down. On by default.</summary>
+    /// <summary>Keeps the view inside the top and bottom edges of <see cref="NavigationBounds"/>. It's on by default, so turn it off if you want to let the user pan and zoom freely up and down.</summary>
     public bool ConstrainVerticalNavigation { get; set; } = true;
 
     /// <summary>A rectangle in canvas coordinates the view can't pan or zoom out of, or null for no limit.</summary>

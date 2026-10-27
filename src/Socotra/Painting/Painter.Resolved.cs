@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Socotra;
 
 public readonly ref partial struct Painter
@@ -16,28 +18,56 @@ public readonly ref partial struct Painter
 
     static void Add(Context context, in BoxDescriptor desc)
     {
-        var blendMode = ResolveBlendMode(desc, context.State.OverrideBlendMode);
-        var transform = DrawingTransform(context);
-        var clipIndex = context.State.ClipIndex;
         if (!context.State.HasArea || context.State.Opacity == 0)
         {
             return;
         }
 
-        var opacity = context.State.Opacity;
-        if (opacity == 1 && desc.OverrideBlendMode == blendMode)
+        var blendMode = ResolveBlendMode(desc, context.State.OverrideBlendMode);
+        var transform = DrawingTransform(context);
+        var clipIndex = context.State.ClipIndex;
+        context.Batcher.Add(desc, context.State.Opacity, blendMode, transform, clipIndex);
+    }
+
+    static bool TryAddSolidShape(Context context, in Fill fill, Rect bounds, int shapeIndex, bool clipFill = true)
+    {
+        ref var state = ref context.State;
+        if (!fill.TryGetSolidColor(out var color) || (clipFill && state.FillMask is not null))
         {
-            context.Batcher.Add(desc, transform, clipIndex);
+            return false;
+        }
+
+        if (!state.HasArea || state.Opacity == 0)
+        {
+            return true;
+        }
+
+        color = color.WithAlphaMultiplied(context.InheritedOpacity).WithAlphaMultiplied(state.Opacity);
+        var clip = clipFill && state.FillInsets != Vector4.Zero ? BackgroundClip.ContentBox : BackgroundClip.BorderBox;
+        context.Batcher.AddSolidShape(bounds, color, shapeIndex, clip, state.FillInsets,
+            DrawingTransform(context), state.ClipIndex, state.OverrideBlendMode);
+        return true;
+    }
+
+    static void AddShape(Context context, in Fill fill, Rect bounds, Rect paintBounds, int shapeIndex, bool clipFill = true)
+    {
+        if (TryAddSolidShape(context, fill, bounds, shapeIndex, clipFill))
+        {
             return;
         }
-        context.Batcher.Add(desc with
-        {
-            OverrideBlendMode = blendMode,
-            Color = desc.Color.WithAlphaMultiplied(opacity),
-            BackgroundTint = desc.BackgroundTint.WithAlphaMultiplied(opacity),
-            Stroke = desc.Stroke.WithAlphaMultiplied(opacity),
-            BorderImage = desc.BorderImage.WithAlphaMultiplied(opacity),
-        }, transform, clipIndex);
+
+        AddPaintedShape(context, fill, bounds, paintBounds, shapeIndex, clipFill);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    static void AddPaintedShape(Context context, in Fill fill, Rect bounds, Rect paintBounds, int shapeIndex, bool clipFill)
+    {
+        fill.CreateDescriptor(paintBounds, context, out var descriptor, clipFill);
+        descriptor.Rect = bounds;
+        descriptor.BackgroundRect.X += paintBounds.Left - bounds.Left;
+        descriptor.BackgroundRect.Y += paintBounds.Top - bounds.Top;
+        descriptor.ShapeIndex = shapeIndex;
+        Add(context, descriptor);
     }
 
     static void Add(Context context, in ShadowDescriptor desc)

@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// Draws shapes, images and text. Set <see cref="Fill"/>, <see cref="Stroke"/> or <see cref="TextStyle"/>, then call a
-/// drawing method. Panels get one in <see cref="Panel.OnDraw"/>; to draw without panels, start one with <see cref="Begin(DrawList, Rect)"/>.
+/// <c>Painter</c> draws shapes, images and text. Set <see cref="Fill"/>, <see cref="Stroke"/> or <see cref="TextStyle"/>,
+/// and then call a drawing method. Panels get one in <see cref="Panel.OnDraw"/>, and if you want to draw without panels,
+/// start one with <see cref="Begin(DrawList, Rect)"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -74,8 +75,8 @@ public readonly ref partial struct Painter
 
     /// <summary>
     /// Starts drawing into <paramref name="texture"/>, made with <see cref="Texture.CreateRenderTarget"/>. What's already in
-    /// it stays unless you call <see cref="Clear"/>. Dispose the painter when you're done; the drawing shows up the next
-    /// time a renderer draws something that uses the texture.
+    /// it stays unless you call <see cref="Clear"/>. Don't forget to dispose the painter when you're done. Your drawing
+    /// shows up the next time a renderer draws something that uses the texture.
     /// </summary>
     /// <example>
     /// <code>
@@ -115,8 +116,9 @@ public readonly ref partial struct Painter
     }
 
     /// <summary>
-    /// Fills everything drawn so far with <paramref name="color"/>. Throws if you call it inside
-    /// <see cref="Panel.OnDraw"/> or a layer; use it on a painter from <see cref="Begin(DrawList, Rect)"/> or <see cref="Begin(Texture)"/>.
+    /// Fills everything drawn so far with <paramref name="color"/>. Please note that it throws inside
+    /// <see cref="Panel.OnDraw"/> or a layer, so only use it on a painter from <see cref="Begin(DrawList, Rect)"/> or
+    /// <see cref="Begin(Texture)"/>.
     /// </summary>
     public void Clear(Color color)
     {

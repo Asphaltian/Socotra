@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace Socotra;
 
-/// <summary>A panel that closes by itself when the user presses a mouse button anywhere outside it.</summary>
+/// <summary><c>BasePopup</c> is a panel that closes by itself when the user presses a mouse button anywhere outside of it.</summary>
 public abstract class BasePopup : Panel
 {
     /// <summary>Keeps the popup open through <see cref="RootPanel.ClosePopups"/>, so only closing it yourself or deleting it takes it away.</summary>

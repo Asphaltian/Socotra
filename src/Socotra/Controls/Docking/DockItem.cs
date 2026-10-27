@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>A panel registered with a <see cref="DockHost"/>. It keeps its state while it's hidden, closed or moved.</summary>
+/// <summary><c>DockItem</c> is a panel that's registered with a <see cref="DockHost"/>. It keeps its state while it's hidden, closed or moved.</summary>
 public sealed class DockItem
 {
     private Func<Panel>? _create;
@@ -38,7 +38,7 @@ public sealed class DockItem
     /// <summary>The panel, or null if it was registered to be made later and hasn't been opened yet.</summary>
     public Panel? Content { get; private set; }
 
-    /// <summary>Whether the user can close the panel.</summary>
+    /// <summary>Returns <c>true</c> if the user can close the panel.</summary>
     public bool CanClose { get; }
 
     internal Panel Container { get; }

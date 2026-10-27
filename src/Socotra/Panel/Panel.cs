@@ -1,8 +1,12 @@
+using System.Buffers;
 using Microsoft.AspNetCore.Components;
 
 namespace Socotra;
 
-/// <summary>A piece of UI, styled with CSS. Everything on screen is a panel, and panels hold other panels.</summary>
+/// <summary>
+/// <c>Panel</c> is a piece of UI that you style with CSS. Everything on the screen is a panel, and panels can hold
+/// other panels.
+/// </summary>
 public partial class Panel : IComponent, IStyleTarget
 {
     private PseudoClass _pseudoClass = PseudoClass.Intro;
@@ -61,25 +65,25 @@ public partial class Panel : IComponent, IStyleTarget
         }
     }
 
-    /// <summary>Whether this has <c>:hover</c>.</summary>
+    /// <summary>Returns <c>true</c> while the panel has <c>:hover</c>.</summary>
     public bool HasHovered => (PseudoClass & PseudoClass.Hover) != 0;
 
-    /// <summary>Whether this has <c>:active</c>.</summary>
+    /// <summary>Returns <c>true</c> while the panel has <c>:active</c>.</summary>
     public bool HasActive => (PseudoClass & PseudoClass.Active) != 0;
 
-    /// <summary>Whether this has <c>:focus</c>: it has focus, or a panel inside it does.</summary>
+    /// <summary>Returns <c>true</c> while the panel has <c>:focus</c>, which is when it has focus or a panel inside it does.</summary>
     public bool HasFocus => (PseudoClass & PseudoClass.Focus) != 0;
 
-    /// <summary>Whether this has <c>:intro</c>, meaning it was created this frame.</summary>
+    /// <summary>Returns <c>true</c> while the panel has <c>:intro</c>, which means it was created on this frame.</summary>
     public bool HasIntro => (PseudoClass & PseudoClass.Intro) != 0;
 
-    /// <summary>Whether this has <c>:outro</c>, meaning it's being deleted.</summary>
+    /// <summary>Returns <c>true</c> while the panel has <c>:outro</c>, which means it's being deleted.</summary>
     public bool HasOutro => (PseudoClass & PseudoClass.Outro) != 0;
 
-    /// <summary>Whether this panel is shown, taking its ancestors into account.</summary>
+    /// <summary>Returns <c>true</c> if this panel is shown, taking its ancestors into account.</summary>
     public bool IsVisible { get; private set; } = true;
 
-    /// <summary>Whether this panel would be shown if its ancestors were.</summary>
+    /// <summary>Returns <c>true</c> if this panel would be shown as long as its ancestors were.</summary>
     public bool IsVisibleSelf { get; private set; } = true;
 
     /// <summary>Turns a pseudo-class on or off. Returns false if it already was.</summary>
@@ -104,7 +108,10 @@ public partial class Panel : IComponent, IStyleTarget
     {
     }
 
-    /// <summary>Whether this panel, or anything inside it, is shown and takes the mouse with <c>pointer-events</c>. Hosts use it to decide whether to show the cursor.</summary>
+    /// <summary>
+    /// Returns <c>true</c> if this panel, or anything inside it, is shown and takes the mouse with <c>pointer-events</c>.
+    /// Usually you'd use this in your host to decide whether to show the mouse cursor.
+    /// </summary>
     public virtual bool WantsMouseInput()
     {
         if (ComputedStyle is null || !IsVisibleSelf)
@@ -219,12 +226,22 @@ public partial class Panel : IComponent, IStyleTarget
 
             if (IsVisible && _children is { Count: > 0 })
             {
-                for (int i = _children.Count - 1; _children is not null && i >= 0; i--)
+                var count = _children.Count;
+                var children = ArrayPool<Panel>.Shared.Rent(count);
+                _children.CopyTo(children);
+                try
                 {
-                    if (i < _children.Count)
+                    for (int i = count - 1; i >= 0; i--)
                     {
-                        _children[i].TickInternal();
+                        if (!children[i].IsDeleted)
+                        {
+                            children[i].TickInternal();
+                        }
                     }
+                }
+                finally
+                {
+                    ArrayPool<Panel>.Shared.Return(children, clearArray: true);
                 }
             }
 

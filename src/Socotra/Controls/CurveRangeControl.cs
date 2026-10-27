@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A small preview of a <see cref="CurveRange"/>: both curves, with the space between them filled. Set it with
-/// <see cref="RangeValue"/> and hear about the user's edits through <see cref="RangeValueChanged"/>.
+/// <c>CurveRangeControl</c> is a small preview of a <see cref="CurveRange"/>, showing both curves with the space between
+/// them filled in. Set it with <see cref="RangeValue"/>, and you'll hear about the user's edits through
+/// <see cref="RangeValueChanged"/>.
 /// </summary>
 public class CurveRangeControl : CurveControl
 {

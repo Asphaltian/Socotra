@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A number the user picks by dragging a thumb along a track, or by typing it into the optional entry beside it.
-/// Pressing anywhere on the track jumps the thumb there. While it's dragged, a tooltip above the thumb shows the value.
-/// When the user changes the value, it sends <c>onchange</c>.
+/// <c>SliderControl</c> lets the user pick a number by dragging a thumb along a track, or by typing it into the optional
+/// entry next to it. Pressing anywhere on the track makes the thumb jump there, and while the user drags it, a tooltip
+/// above the thumb shows the value. It sends <c>onchange</c> when the user changes the value.
 /// </summary>
 /// <example>
 /// <code>
@@ -273,7 +273,7 @@ public class SliderControl : Panel
         }
     }
 
-    /// <summary>Shows the value above the thumb while the slider is being dragged. On by default.</summary>
+    /// <summary>Shows the value above the thumb while the slider is being dragged. It's on by default.</summary>
     [Parameter]
     public bool ShowValueTooltip { get; set; } = true;
 

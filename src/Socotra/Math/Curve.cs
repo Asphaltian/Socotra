@@ -6,9 +6,10 @@ using System.Text.Json.Serialization;
 namespace Socotra;
 
 /// <summary>
-/// A curve through key frames, for easing, falloff and anything else that maps one number to another. Keys sit between 0
-/// and 1 on both axes; <see cref="TimeRange"/> and <see cref="ValueRange"/> say what those mean in your own units. Curves
-/// save to and load from JSON with <see cref="JsonSerializer"/>. Edit one with a <see cref="CurveEditor"/>.
+/// <c>Curve</c> is a curve through key frames, for easing, falloff and anything else that turns one number into another.
+/// Keys sit between 0 and 1 on both axes, and <see cref="TimeRange"/> and <see cref="ValueRange"/> say what those mean
+/// in your own units. You can save curves to JSON and load them back with <see cref="JsonSerializer"/>, and the user can
+/// edit one with a <see cref="CurveEditor"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -65,13 +66,13 @@ public struct Curve
     /// <summary>How a key frame's curve leaves it and reaches the next one.</summary>
     public enum HandleMode
     {
-        /// <summary>Smooth, with one tangent the user sets; the other side mirrors it.</summary>
+        /// <summary>Smooth, with one tangent that the user sets, and the other side mirrors it.</summary>
         Mirrored,
 
         /// <summary>Smooth, with separate tangents in and out.</summary>
         Split,
 
-        /// <summary>Smooth and level: both tangents are 0.</summary>
+        /// <summary>Smooth and level, with both tangents at 0.</summary>
         Flat,
 
         /// <summary>A straight line to the next key frame.</summary>
@@ -137,7 +138,8 @@ public struct Curve
     }
 
     /// <summary>
-    /// A copy of this curve going the other way in time: a curve that eases from 0 to 1 comes back eased from 1 to 0.
+    /// Returns a copy of this curve that goes the other way in time, so a curve that eases from 0 to 1 comes back eased
+    /// from 1 to 0.
     /// A stepped part still holds the value of the key frame it starts at, so it steps at the other end.
     /// </summary>
     public readonly Curve Reverse()
@@ -243,7 +245,7 @@ public struct Curve
         return index >= Frames.Length ? Frames[^1].Value : Interpolate(Frames[index - 1], Frames[index], time);
     }
 
-    /// <summary>Repairs a broken curve: zero ranges become 0 to 1, and an empty curve gets a key frame in the middle.</summary>
+    /// <summary>Repairs a broken curve. Zero ranges become 0 to 1, and an empty curve gets a key frame in the middle.</summary>
     public void Fix()
     {
         if (ValueRange == Vector2.Zero)
@@ -310,7 +312,7 @@ public struct Curve
         return a.Value + (t * ((t * ((t * (((incoming + outgoing) * dx) - (2 * dy))) + ((-incoming - (2 * outgoing)) * dx) + (3 * dy))) + (outgoing * dx)));
     }
 
-    /// <summary>A key frame on a <see cref="Curve"/>. Its time and value go from 0 to 1.</summary>
+    /// <summary>A key frame on a <see cref="Curve"/>. Both its time and its value go from 0 to 1.</summary>
     public struct Frame : IComparable<Frame>
     {
         /// <summary>Makes a smooth key frame at <paramref name="timedelta"/>, <paramref name="valuedelta"/> with level tangents.</summary>
@@ -461,7 +463,7 @@ public struct Curve
     }
 }
 
-/// <summary>Two curves, for a value that can land anywhere between them, like a random size that changes over time.</summary>
+/// <summary><c>CurveRange</c> is two curves, for a value that can land anywhere between them, like a random size that changes over time.</summary>
 public struct CurveRange
 {
     /// <summary>Makes a range between two curves with no key frames.</summary>

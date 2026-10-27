@@ -230,6 +230,7 @@ public class TabTests
         Frames(root);
         Assert.True(a.HasClass("dragging"));
         Assert.True(b.HasClass("drop-after"));
+        Assert.NotSame(a, root.Focused);
         Key(root, "escape");
         root.SetMouseButton(MouseButtons.Left, false);
         Frames(root);

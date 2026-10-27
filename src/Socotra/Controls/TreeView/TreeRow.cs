@@ -1,9 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// One row of a <see cref="BaseTreeView"/> that's in view. The same panel shows other rows as the tree scrolls, so
-/// anything you add to one should be added once and updated every time the row is filled in. A row has the <c>tree-row</c>
-/// class, plus <c>has-children</c>, <c>open</c> and <c>selected</c> as they apply.
+/// <c>TreeRow</c> is one row of a <see cref="BaseTreeView"/> that's in view. Keep in mind that the same panel shows other
+/// rows as the tree scrolls, so add your own things to it once and update them every time the row is filled in. A row
+/// has the <c>tree-row</c> class, plus <c>has-children</c>, <c>open</c> and <c>selected</c> when they apply.
 /// </summary>
 public class TreeRow : Panel
 {
@@ -13,7 +13,7 @@ public class TreeRow : Panel
     private float _indent = -1;
     private bool _iconVisible = true;
 
-    /// <summary>Makes an empty row. Trees make their own rows; you don't need to.</summary>
+    /// <summary>Creates an empty row. Trees create their own rows, so you won't need to call this yourself.</summary>
     public TreeRow()
     {
         AddClass("tree-row");
@@ -30,7 +30,7 @@ public class TreeRow : Panel
     /// <summary>Which row of the tree this panel shows, or -1 while it shows none.</summary>
     public int RowIndex { get; internal set; } = -1;
 
-    /// <summary>The arrow that opens and closes the row. Style it with the <c>tree-expander</c> class; it's there even on rows that can't open.</summary>
+    /// <summary>The arrow that opens and closes the row. You can style it with the <c>tree-expander</c> class, and keep in mind that it's there even on rows that can't open.</summary>
     public IconPanel Expander { get; }
 
     /// <summary>The icon before the text, set with <see cref="IconName"/>.</summary>
@@ -40,8 +40,8 @@ public class TreeRow : Panel
     public Label Label { get; }
 
     /// <summary>
-    /// Where the row's own controls go, like toggles, buttons or badges. Add them once and update them each time the row
-    /// is filled. Clicks on them belong to them: they don't select or activate the row.
+    /// Where the row's own controls go, like toggles, buttons or badges. Add them once, and update them each time the row
+    /// is filled in. Clicking them doesn't select or activate the row.
     /// </summary>
     public Panel Content { get; }
 
@@ -80,7 +80,7 @@ public class TreeRow : Panel
         }
     }
 
-    /// <summary>Whether the user is renaming the row right now.</summary>
+    /// <summary>Returns <c>true</c> while the user is renaming the row.</summary>
     public bool IsRenaming => _rename is { IsDeleted: false };
 
     /// <summary>Rows can be dragged when their tree lets them.</summary>
@@ -88,7 +88,7 @@ public class TreeRow : Panel
 
     internal int BindVersion { get; set; } = -1;
 
-    /// <summary>Swaps the label for a text box so the user can rename the row. Enter keeps the new name; Escape or clicking away cancels.</summary>
+    /// <summary>Swaps the label for a text box so the user can rename the row. Enter keeps the new name, and Escape or clicking away cancels it.</summary>
     public void BeginRename()
     {
         if (IsRenaming)

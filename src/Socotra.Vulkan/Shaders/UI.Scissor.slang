@@ -15,7 +15,7 @@ float ScissorCoverage(int index, float2 vPanelPos)
         ScissorData scissor = ScissorBuffer[index];
         float localCoverage = 1.0;
         [loop]
-        for (int k = 0; k < scissor.Count; k++)
+        for (int k = 0; k < min(scissor.Count, MAX_CLIPS); k++)
         {
             ClipShape c = scissor.Clips[k];
             if (any(c.Rect.zw <= c.Rect.xy)) { localCoverage = 0; break; }

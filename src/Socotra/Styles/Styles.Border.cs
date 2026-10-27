@@ -2,10 +2,10 @@ namespace Socotra;
 
 public partial class Styles
 {
-    /// <summary>Whether any side has a border wider than zero.</summary>
+    /// <summary>Returns <c>true</c> if any side has a border that's wider than zero.</summary>
     public bool HasBorder => UsedBorderLeftWidth?.Value > 0 || UsedBorderTopWidth?.Value > 0 || UsedBorderRightWidth?.Value > 0 || UsedBorderBottomWidth?.Value > 0;
 
-    /// <summary>Whether any corner is rounded.</summary>
+    /// <summary>Returns <c>true</c> if any corner is rounded.</summary>
     public bool HasBorderRadius =>
         _borderTopLeftRadius?.Value > 0 || _borderTopRightRadius?.Value > 0 || _borderBottomLeftRadius?.Value > 0 || _borderBottomRightRadius?.Value > 0;
 
@@ -17,7 +17,7 @@ public partial class Styles
 
     internal Length? UsedBorderBottomWidth => UsedBorderWidth(_borderBottomWidth);
 
-    /// <summary>How far in the content sits from each edge: the border plus the padding. Percentages are of <paramref name="size"/>.</summary>
+    /// <summary>How far in the content sits from each edge, which is the border plus the padding. Percentages are of <paramref name="size"/>.</summary>
     public Margin GetInset(Vector2 size) =>
         Socotra.Margin.GetEdges(size, UsedBorderLeftWidth, UsedBorderTopWidth, UsedBorderRightWidth, UsedBorderBottomWidth)
         + Socotra.Margin.GetEdges(size, _paddingLeft, _paddingTop, _paddingRight, _paddingBottom);

@@ -15,8 +15,20 @@ public readonly ref partial struct Painter
     /// </example>
     public void Text(string text, Rect rect) => DrawText(text, rect, TextStyle);
 
-    /// <summary>Draws <paramref name="texture"/> stretched over <paramref name="rect"/>. Pass <paramref name="tint"/> to color it.</summary>
-    public void Texture(Texture texture, Rect rect, Color? tint = null) => Texture(texture, rect, tint ?? Color.White, FilterMode.Bilinear);
+    /// <summary>
+    /// Draws <paramref name="texture"/> stretched over <paramref name="rect"/>. Pass a <paramref name="tint"/> if you want
+    /// to color it. If you're drawing pixel art, set <paramref name="filter"/> to <see cref="FilterMode.Point"/> so the
+    /// pixels stay sharp instead of getting blurry.
+    /// </summary>
+    public void Texture(Texture texture, Rect rect, Color? tint = null, FilterMode filter = FilterMode.Bilinear)
+    {
+        if (!Enum.IsDefined(filter))
+        {
+            throw new ArgumentOutOfRangeException(nameof(filter));
+        }
+
+        Texture(texture, rect, tint ?? Color.White, filter);
+    }
 
     /// <summary>
     /// Draws a soft shadow around <paramref name="rect"/>, or inside it with <paramref name="inset"/>, like

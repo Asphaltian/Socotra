@@ -7,7 +7,10 @@ using Socotra.Layout;
 
 namespace Socotra;
 
-/// <summary>A panel that shows text. Set <see cref="IsRich"/> to show simple markup, or use a <see cref="TextEntry"/> to let the user edit it.</summary>
+/// <summary>
+/// <c>Label</c> is a panel that shows text. Set <see cref="IsRich"/> if you want to show simple markup, or use a
+/// <see cref="TextEntry"/> instead if the user should be able to edit it.
+/// </summary>
 /// <example>
 /// <code>
 /// // A label with a class to style it by
@@ -91,10 +94,10 @@ public partial class Label : Panel
     [Parameter]
     public Action<INode>? OnNodeClicked { get; set; }
 
-    /// <summary>Whether the user can select the text.</summary>
+    /// <summary>Set this to <c>false</c> if the user shouldn't be able to select the text.</summary>
     public bool Selectable { get; set; } = true;
 
-    /// <summary>Whether the selection is shown. Turning it on does nothing unless <see cref="Selectable"/> is set.</summary>
+    /// <summary>Whether the selection is shown. Keep in mind that turning it on does nothing unless <see cref="Selectable"/> is on too.</summary>
     public bool ShouldDrawSelection
     {
         get => TextBlock?.ShouldDrawSelection ?? _drawSelection;
@@ -242,7 +245,7 @@ public partial class Label : Panel
     /// <summary>The character under a point on screen, or -1 if the point isn't over any. Both halves of a character give the same answer.</summary>
     public int GetCharacterAtScreenPosition(Vector2 pos) => TextBlock?.GetCharacterAt(ScreenPositionToTextRectPosition(pos)) ?? -1;
 
-    /// <summary>Whether some text is selected and the selection is shown.</summary>
+    /// <summary>Returns <c>true</c> if some text is selected and the selection is shown.</summary>
     public bool HasSelection() => ShouldDrawSelection && SelectionStart != SelectionEnd;
 
     /// <inheritdoc/>
@@ -271,6 +274,16 @@ public partial class Label : Panel
         }
 
         TextBlock.Draw(painter, painter.InheritedBlendMode, ComputedStyle, TextLayoutRect, painter.InheritedOpacity);
+    }
+
+    internal void DrawTextEffects(Painter painter)
+    {
+        if (!_clipsBackgroundToText || TextBlock is null || ComputedStyle is null || LayoutTree.IsInlineParticipant)
+        {
+            return;
+        }
+
+        TextBlock.DrawEffects(painter, painter.InheritedBlendMode, ComputedStyle, TextLayoutRect, painter.InheritedOpacity);
     }
 
     internal bool GetTextMask([NotNullWhen(true)] out Texture? texture, out Rect rect)

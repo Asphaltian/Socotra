@@ -3,8 +3,9 @@ using Svg.Skia;
 namespace Socotra;
 
 /// <summary>
-/// Shows an SVG file, drawn sharp at whatever size the panel is. The picture keeps its shape and is centered, like
-/// <c>object-fit: contain</c>. Set <c>background-size</c> to draw it at another size. In markup it's <c>&lt;svg src="..."&gt;</c>.
+/// <c>SvgPanel</c> shows an SVG file, and keeps it sharp at whatever size the panel is. The picture keeps its shape and
+/// is centered, just like <c>object-fit: contain</c>. If you want it at another size, set <c>background-size</c>. In
+/// markup it's <c>&lt;svg src="..."&gt;</c>.
 /// </summary>
 /// <example>
 /// <code>

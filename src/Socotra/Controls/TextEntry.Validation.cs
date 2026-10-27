@@ -23,7 +23,7 @@ public partial class TextEntry
     /// <summary>With <see cref="Numeric"/>, only lets whole numbers be typed.</summary>
     public bool WholeNumbers { get; set; }
 
-    /// <summary>Whether the text breaks one of the rules above. The entry has the <c>invalid</c> class while it does.</summary>
+    /// <summary><c>true</c> while the text breaks one of the rules above. The entry has the <c>invalid</c> class while it does.</summary>
     public bool HasValidationErrors { get; set; }
 
     /// <summary>Checks the text against <see cref="MinLength"/>, <see cref="MaxLength"/>, <see cref="StringRegex"/> and <see cref="CharacterRegex"/>, and updates <see cref="HasValidationErrors"/>.</summary>

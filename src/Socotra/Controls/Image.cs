@@ -4,8 +4,9 @@ using Socotra.Layout;
 namespace Socotra;
 
 /// <summary>
-/// A panel that shows a picture. Without a set size it takes the picture's size, scaled with the UI. <c>object-fit</c>
-/// decides how the picture fills the panel, and <c>background-size</c> and <c>background-position</c> can place it exactly.
+/// <c>Image</c> is a panel that shows a picture. If you don't give it a size, it takes the picture's size, scaled with
+/// the UI. <c>object-fit</c> decides how the picture fills the panel, and <c>background-size</c> and
+/// <c>background-position</c> let you place it exactly.
 /// </summary>
 /// <example>
 /// <code>

@@ -12,7 +12,7 @@ public partial class Menu
 
     internal static float SubmenuCloseDelay { get; set; } = 0.2f;
 
-    /// <summary>Does what clicking this row does: a submenu opens, a checkable row flips, and a command runs and closes the whole menu.</summary>
+    /// <summary>Does the same thing as clicking this row. A submenu opens, a checkable row flips, and a command runs and closes the whole menu.</summary>
     public void Activate()
     {
         if (IsSeparator || !Enabled || ParentMenu is null)

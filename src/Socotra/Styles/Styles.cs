@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// A set of CSS properties, like a panel's <see cref="Panel.Style"/>. Leave a property null to let stylesheets
-/// and the parent decide it. Set properties from C# or with the same text you'd write in a stylesheet.
+/// <c>Styles</c> is a set of CSS properties, like a panel's <see cref="Panel.Style"/>. If you leave a property null,
+/// stylesheets and the parent decide it. You can set properties from C#, or with the same text you'd write in a
+/// stylesheet.
 /// </summary>
 /// <example><code>
 /// // Typed properties
@@ -86,16 +87,16 @@ public partial class Styles
     /// <summary><c>margin-bottom</c>: the space kept clear outside the panel's bottom edge.</summary>
     public Length? MarginBottom { get => _marginBottom; set => Set(ref _marginBottom, value); }
 
-    /// <summary><c>border-top-left-radius</c>: how rounded the top left corner is. This is the horizontal radius; set <see cref="BorderTopLeftRadiusV"/> as well for an elliptical corner.</summary>
+    /// <summary><c>border-top-left-radius</c>: how rounded the top left corner is. This is the horizontal radius, so set <see cref="BorderTopLeftRadiusV"/> as well if you want an elliptical corner.</summary>
     public Length? BorderTopLeftRadius { get => _borderTopLeftRadius; set => Set(ref _borderTopLeftRadius, value); }
 
-    /// <summary><c>border-top-right-radius</c>: how rounded the top right corner is. This is the horizontal radius; set <see cref="BorderTopRightRadiusV"/> as well for an elliptical corner.</summary>
+    /// <summary><c>border-top-right-radius</c>: how rounded the top right corner is. This is the horizontal radius, so set <see cref="BorderTopRightRadiusV"/> as well if you want an elliptical corner.</summary>
     public Length? BorderTopRightRadius { get => _borderTopRightRadius; set => Set(ref _borderTopRightRadius, value); }
 
-    /// <summary><c>border-bottom-right-radius</c>: how rounded the bottom right corner is. This is the horizontal radius; set <see cref="BorderBottomRightRadiusV"/> as well for an elliptical corner.</summary>
+    /// <summary><c>border-bottom-right-radius</c>: how rounded the bottom right corner is. This is the horizontal radius, so set <see cref="BorderBottomRightRadiusV"/> as well if you want an elliptical corner.</summary>
     public Length? BorderBottomRightRadius { get => _borderBottomRightRadius; set => Set(ref _borderBottomRightRadius, value); }
 
-    /// <summary><c>border-bottom-left-radius</c>: how rounded the bottom left corner is. This is the horizontal radius; set <see cref="BorderBottomLeftRadiusV"/> as well for an elliptical corner.</summary>
+    /// <summary><c>border-bottom-left-radius</c>: how rounded the bottom left corner is. This is the horizontal radius, so set <see cref="BorderBottomLeftRadiusV"/> as well if you want an elliptical corner.</summary>
     public Length? BorderBottomLeftRadius { get => _borderBottomLeftRadius; set => Set(ref _borderBottomLeftRadius, value); }
 
     /// <summary>The vertical radius of <c>border-top-left-radius</c>, for an elliptical corner. Leave it null to match <see cref="BorderTopLeftRadius"/>.</summary>
@@ -155,7 +156,7 @@ public partial class Styles
     /// <summary><c>cursor</c>: the mouse cursor the panel asks for, like <c>pointer</c>. Socotra doesn't change the cursor for you, so read it from the hovered panel's <see cref="Panel.ComputedStyle"/> and set your window's cursor.</summary>
     public string? Cursor { get => _cursor; set => Set(ref _cursor, value); }
 
-    /// <summary><c>pointer-events</c>: whether the panel reacts to the mouse. Set it to <c>all</c> on anything that should; children get the same value unless they set their own.</summary>
+    /// <summary><c>pointer-events</c>: whether the panel reacts to the mouse. Set it to <c>all</c> on anything that should, and keep in mind that children get the same value unless they set their own.</summary>
     public PointerEvents? PointerEvents { get => _pointerEvents; set => Set(ref _pointerEvents, value); }
 
     /// <summary><c>mix-blend-mode</c>: how the panel blends with what's behind it: <c>normal</c>, <c>multiply</c> or <c>lighten</c>.</summary>
@@ -419,10 +420,10 @@ public partial class Styles
     /// <summary>How much of the <c>border-image</c> is sliced off for the bottom edge.</summary>
     public Length? BorderImageWidthBottom { get => _borderImageWidthBottom; set => Set(ref _borderImageWidthBottom, value); }
 
-    /// <summary>Whether <c>border-image</c> has <c>fill</c>, which draws the middle of the image as well as the edges.</summary>
+    /// <summary>The <c>fill</c> part of <c>border-image</c>, which draws the middle of the image as well as the edges.</summary>
     public BorderImageFill? BorderImageFill { get => _borderImageFill; set => Set(ref _borderImageFill, value); }
 
-    /// <summary>Whether the edges of <c>border-image</c> stretch or tile.</summary>
+    /// <summary>Decides whether the edges of <c>border-image</c> stretch or tile.</summary>
     public BorderImageRepeat? BorderImageRepeat { get => _borderImageRepeat; set => Set(ref _borderImageRepeat, value); }
 
     /// <summary>A color the <c>border-image</c> is multiplied by.</summary>
@@ -598,7 +599,7 @@ public partial class Styles
     /// <summary><c>transition</c> and its longhands: which properties animate smoothly when they change.</summary>
     public TransitionList? Transitions { get => _transitions; set => Set(ref _transitions, value); }
 
-    /// <summary>Whether any transitions are set.</summary>
+    /// <summary>Returns <c>true</c> if any transitions are set.</summary>
     public bool HasTransitions => _transitions is { List.Count: > 0 };
 
     internal bool IsVisible => _display != DisplayMode.None && !(_opacity <= 0);
@@ -741,13 +742,19 @@ public partial class Styles
         }
     }
 
-    internal void FillDefaults()
+    internal void FillDefaults(float scale)
     {
+        var needsDefaultFontSize = _fontSize is null;
         _overflowX ??= Overflow ?? OverflowMode.Visible;
         _overflowY ??= Overflow ?? OverflowMode.Visible;
         foreach (var property in Properties)
         {
             property.FillDefault(this);
+        }
+
+        if (needsDefaultFontSize && _fontSize is { } fontSize)
+        {
+            _fontSize = fontSize.Scaled(scale, false);
         }
     }
 

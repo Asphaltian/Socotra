@@ -156,7 +156,7 @@ public partial class TextEntry
         return true;
     }
 
-    /// <summary>A suggestion for <see cref="AutoComplete"/> that shows <see cref="Title"/> in the list and puts <see cref="Value"/> in the entry when it's picked.</summary>
+    /// <summary>A suggestion for <see cref="AutoComplete"/>. It shows <see cref="Title"/> in the list, and puts <see cref="Value"/> in the entry when the user picks it.</summary>
     public struct AutocompleteEntry
     {
         /// <summary>The text shown in the list.</summary>

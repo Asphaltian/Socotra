@@ -1,6 +1,9 @@
 namespace Socotra;
 
-/// <summary>A CSS length, like <c>10px</c>, <c>50%</c>, <c>2em</c> or <c>calc(100% - 20px)</c>. Use it for sizes, positions and spacing in <see cref="Styles"/>.</summary>
+/// <summary>
+/// <c>Length</c> is a CSS length, like <c>10px</c>, <c>50%</c>, <c>2em</c> or <c>calc(100% - 20px)</c>. You use it for
+/// sizes, positions and spacing in <see cref="Styles"/>.
+/// </summary>
 /// <example><code>
 /// // A plain number is pixels
 /// panel.Style.Width = 200;

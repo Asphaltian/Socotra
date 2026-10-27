@@ -22,54 +22,44 @@ public readonly ref partial struct Painter
                 AlignmentMask = alignmentMask;
                 _primitives = primitives.ToArray();
                 _nodes = new PathNode[checked(Math.Max(0, primitives.Length * 2 - 1))];
+                BuildNodes(shape, primitives, _nodes);
+            }
+
+            internal static void BuildNodes(in ShapeInstance shape, ReadOnlySpan<PathPrimitive> primitives, Span<PathNode> nodes)
+            {
                 if (primitives.IsEmpty)
                 {
                     return;
                 }
 
-                Span<BoundsEntry> entries = primitives.Length <= 128 ? stackalloc BoundsEntry[primitives.Length] : new BoundsEntry[primitives.Length];
-                for (int i = 0; i < entries.Length; i++)
-                {
-                    entries[i] = new(shape.Kind == ShapeKind.PolygonPath ? SegmentBounds(primitives[i].A)
-                                        : PrimitiveBounds(primitives[i], shape.Circle.Z * 0.5f), i);
-                }
-
                 int nodeCount = 0;
-                Build(entries, _nodes, ref nodeCount);
+                Build(shape, primitives, 0, primitives.Length, nodes, ref nodeCount);
             }
 
-            readonly record struct BoundsEntry(Rect Bounds, int Primitive);
-
-            readonly struct BoundsComparer(bool horizontal) : IComparer<BoundsEntry>
+            static Vector4 Build(in ShapeInstance shape, ReadOnlySpan<PathPrimitive> primitives, int start, int count, Span<PathNode> nodes, ref int nodeCount)
             {
-                public int Compare(BoundsEntry a, BoundsEntry b) => horizontal
-                    ? a.Bounds.Center.X.CompareTo(b.Bounds.Center.X)
-                    : a.Bounds.Center.Y.CompareTo(b.Bounds.Center.Y);
-            }
-
-            static void Build(Span<BoundsEntry> entries, Span<PathNode> nodes, ref int nodeCount)
-            {
-                var min = entries[0].Bounds.Position;
-                var max = entries[0].Bounds.BottomRight;
-                for (int i = 1; i < entries.Length; i++)
-                {
-                    min = Vector2.Min(min, entries[i].Bounds.Position);
-                    max = Vector2.Max(max, entries[i].Bounds.BottomRight);
-                }
                 int index = nodeCount++;
-                if (entries.Length > 1)
+                Vector4 bounds;
+                if (count == 1)
                 {
-                    entries.Sort(new BoundsComparer(max.X - min.X > max.Y - min.Y));
-                    int left = entries.Length / 2;
-                    Build(entries[..left], nodes, ref nodeCount);
-                    Build(entries[left..], nodes, ref nodeCount);
+                    var rect = shape.Kind == ShapeKind.PolygonPath ? SegmentBounds(primitives[start].A)
+                        : PrimitiveBounds(primitives[start], shape.Circle.Z * 0.5f);
+                    bounds = new Vector4(rect.Left, rect.Top, rect.Right, rect.Bottom);
+                }
+                else
+                {
+                    int left = count / 2;
+                    var a = Build(shape, primitives, start, left, nodes, ref nodeCount);
+                    var b = Build(shape, primitives, start + left, count - left, nodes, ref nodeCount);
+                    bounds = new Vector4(MathF.Min(a.X, b.X), MathF.Min(a.Y, b.Y), MathF.Max(a.Z, b.Z), MathF.Max(a.W, b.W));
                 }
                 nodes[index] = new PathNode
                 {
-                    Bounds = new Vector4(min.X, min.Y, max.X, max.Y),
+                    Bounds = bounds,
                     Next = nodeCount,
-                    Primitive = entries.Length == 1 ? entries[0].Primitive : -1,
+                    Primitive = count == 1 ? start : -1,
                 };
+                return bounds;
             }
         }
     }

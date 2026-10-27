@@ -15,6 +15,14 @@ public class AnimationTests
     private static void Update(RootPanel root, float deltaTime = 0) => root.Update(new Rect(0, 0, 1920, 1080), deltaTime);
 
     [Fact]
+    public void CubicEasingsRunFromZeroToOne()
+    {
+        Assert.Equal((0f, 0.125f, 1f), (Easing.CubicIn(0), Easing.CubicIn(0.5f), Easing.CubicIn(1)));
+        Assert.Equal((0f, 0.875f, 1f), (Easing.CubicOut(0), Easing.CubicOut(0.5f), Easing.CubicOut(1)));
+        Assert.Equal((0f, 0.5f, 1f), (Easing.CubicInOut(0), Easing.CubicInOut(0.5f), Easing.CubicInOut(1)));
+    }
+
+    [Fact]
     public void TransitionsFromDifferentRulesCombine()
     {
         var (root, panel) = Setup("""

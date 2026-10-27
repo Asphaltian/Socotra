@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// Shows an icon from an icon font by its name, like <c>settings</c> or <c>cancel</c>. It uses the <c>Material Icons</c>
-/// family, which isn't included: load it with <see cref="Fonts.Load"/> first, or set <c>font-family</c> to another icon font.
+/// <c>IconPanel</c> shows an icon from an icon font by its name, like <c>settings</c> or <c>cancel</c>. It uses the
+/// <c>Material Icons</c> family, which isn't included, so don't forget to load it with <see cref="Fonts.Load"/> first,
+/// or set <c>font-family</c> to another icon font.
 /// </summary>
 /// <example>
 /// <code>

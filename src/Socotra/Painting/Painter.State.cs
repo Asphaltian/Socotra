@@ -3,7 +3,8 @@ namespace Socotra;
 public readonly ref partial struct Painter
 {
     /// <summary>
-    /// What the inside of shapes is painted with: a color, gradient or image. Nothing is filled until you set it.
+    /// What the inside of shapes is painted with, which can be a color, a gradient or an image. Keep in mind that nothing
+    /// is filled until you set it.
     /// </summary>
     public Fill Fill
     {
@@ -19,12 +20,12 @@ public readonly ref partial struct Painter
         get => ActiveContext.State.Stroke;
         set
         {
-            if (!Enum.IsDefined(value.Alignment))
+            if ((uint)value.Alignment > (uint)Stroke.StrokeAlignment.Outside)
             {
                 throw new ArgumentOutOfRangeException(nameof(value));
             }
 
-            if (!Enum.IsDefined(value.Style))
+            if ((uint)value.Style > (uint)BorderStyle.Outset)
             {
                 throw new ArgumentOutOfRangeException(nameof(value));
             }
@@ -99,7 +100,8 @@ public readonly ref partial struct Painter
     public StateScope Scope() => new(ActiveContext);
 
     /// <summary>
-    /// Returned by <see cref="Scope"/>. Dispose it to put the drawing state back; dispose nested scopes in reverse order.
+    /// You get this from <see cref="Scope"/>. Dispose it to put the drawing state back, and keep in mind that nested
+    /// scopes have to be disposed in reverse order.
     /// </summary>
     public ref struct StateScope
     {

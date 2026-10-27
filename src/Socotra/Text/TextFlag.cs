@@ -1,8 +1,8 @@
 namespace Socotra;
 
 /// <summary>
-/// Where text sits inside the rectangle you draw it in, set through <see cref="TextStyle.Alignment"/>.
-/// Combine one horizontal and one vertical value; leave an axis out and it sticks to the top or left.
+/// Where text sits inside the rectangle you draw it in, which you set through <see cref="TextStyle.Alignment"/>.
+/// Combine one horizontal and one vertical value. If you leave an axis out, the text sticks to the top or the left.
 /// </summary>
 [Flags]
 public enum TextFlag

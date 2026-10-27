@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// The tooltips of one <see cref="RootPanel"/>, found through <see cref="RootPanel.Tooltips"/>. While the mouse rests on a
-/// panel with a <see cref="Panel.Tooltip"/>, or inside one, its tooltip shows next to the mouse, kept on the screen.
+/// <c>TooltipSystem</c> shows the tooltips of one <see cref="RootPanel"/>, and you can get it from
+/// <see cref="RootPanel.Tooltips"/>. While the mouse rests on a panel that has a <see cref="Panel.Tooltip"/>, or on
+/// something inside one, its tooltip shows up next to the mouse and stays on the screen.
 /// </summary>
 /// <example>
 /// <code>
@@ -37,7 +38,7 @@ public sealed class TooltipSystem
     /// <summary>The tooltip panel showing right now, or null.</summary>
     public Panel? Current => _tooltip is { IsDeleted: false } ? _tooltip : null;
 
-    /// <summary>Whether a tooltip is showing.</summary>
+    /// <summary>Returns <c>true</c> while a tooltip is showing.</summary>
     public bool IsShowing => _tooltip is { IsDeleted: false };
 
     internal void SetHovered(Panel? current, Vector2 cursor)

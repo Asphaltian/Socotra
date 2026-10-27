@@ -1,11 +1,18 @@
 namespace Socotra;
 
 /// <summary>
-/// A workspace of panels arranged in areas with draggable splitters between them, where each area holds one or more
-/// panels with a tab for each. Register your panels once, then open and arrange them with <see cref="Dock"/>. The user
-/// can drag a tab onto the guides that appear to move its panel to another area, split it off to one side, or drop it
-/// among another area's tabs. A panel keeps its state when it's hidden, closed or moved. Save the arrangement with
-/// <see cref="State"/> and put it back later. In markup it's <c>&lt;dockhost&gt;</c>.
+/// <c>DockHost</c> is a workspace where your panels sit side by side in areas, with splitters between them that the
+/// user can drag, like the windows of an editor. Each area can hold several panels, with a tab for each one.
+/// <para>
+/// You register your panels once, and then open and arrange them with <see cref="Dock"/>. The user can drag a tab
+/// onto the guides that show up to move it into another area, split it off to one side, or put it between another
+/// area's tabs. Panels keep their state when they're hidden, closed or moved around. If you want the layout to be
+/// there next time, save <see cref="State"/> and set it back later. In markup it's <c>&lt;dockhost&gt;</c>.
+/// </para>
+/// <para>
+/// Keep in mind that areas respect the <c>min-width</c>, <c>max-width</c>, <c>min-height</c> and <c>max-height</c> of
+/// their panels, as long as you give them in pixels and there's enough room for them.
+/// </para>
 /// </summary>
 /// <example>
 /// <code>
@@ -48,7 +55,7 @@ public partial class DockHost : Panel
             .dock-group { flex-direction: column; background-color: #20242c; }
             .dock-body { position: relative; }
             .dock-content { width: 100%; height: 100%; }
-            .dock-content > * { flex-grow: 1; min-width: 0; min-height: 0; }
+            .dock-content > * { flex-grow: 1; }
             .dock-branch { flex-basis: 0px; }
             .dock-splitter
             {
@@ -187,8 +194,9 @@ public partial class DockHost : Panel
     }
 
     /// <summary>
-    /// Registers a panel under <paramref name="id"/> without making it yet: <paramref name="create"/> is called the first
-    /// time the panel is opened, and the panel is kept after that. Otherwise the same as the other <c>Register</c>.
+    /// Registers a panel under <paramref name="id"/> without creating it yet. <paramref name="create"/> is called the first
+    /// time the panel is opened, and the panel is kept after that. Apart from that, it works just like the other
+    /// <c>Register</c>.
     /// </summary>
     /// <exception cref="ArgumentException">The ID is empty or already registered.</exception>
     /// <exception cref="InvalidOperationException">The host is being deleted.</exception>
@@ -203,7 +211,7 @@ public partial class DockHost : Panel
     /// <summary>The registered panel with <paramref name="id"/>, open or closed, or null.</summary>
     public DockItem? Find(string? id) => id is not null && _items.TryGetValue(id, out var item) ? item : null;
 
-    /// <summary>Whether the panel with <paramref name="id"/> is open.</summary>
+    /// <summary>Returns <c>true</c> if the panel with <paramref name="id"/> is open.</summary>
     public bool IsOpen(string id) => _layout.FindGroup(id) is not null;
 
     /// <summary>

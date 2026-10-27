@@ -146,11 +146,12 @@ public class RendererTests(GpuHost gpu)
         Assert.Equal(4, Unsafe.SizeOf<DownsampleConstants>());
         Assert.Equal(188, Unsafe.SizeOf<QuadDraw>());
         Assert.Equal(280, Unsafe.SizeOf<FilterConstants>());
-        Assert.Equal(256, Unsafe.SizeOf<BackdropConstants>());
+        Assert.Equal(260, Unsafe.SizeOf<BackdropConstants>());
         Assert.Equal(228, Unsafe.SizeOf<DropShadowConstants>());
         Assert.Equal(220, Unsafe.SizeOf<BorderWrapConstants>());
         Assert.Equal(264, (int)Marshal.OffsetOf<FilterConstants>(nameof(FilterConstants.MaskPos)));
         Assert.Equal(252, (int)Marshal.OffsetOf<BackdropConstants>(nameof(BackdropConstants.FrameBufferCopyTextureIndex)));
+        Assert.Equal(256, (int)Marshal.OffsetOf<BackdropConstants>(nameof(BackdropConstants.ShapeIndex)));
     }
 
     [GpuFact]

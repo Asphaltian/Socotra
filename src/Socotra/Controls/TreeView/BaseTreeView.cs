@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// The scrolling, selection and keyboard handling behind <see cref="TreeView{T}"/>, working on row numbers. Use
-/// <see cref="TreeView{T}"/> unless your data doesn't fit it: then subclass this and fill in the row methods.
+/// <c>BaseTreeView</c> is a tree that works with row numbers instead of your own objects. Usually you want
+/// <see cref="TreeView{T}"/> instead, but if your data doesn't fit it, subclass this and fill in the row methods.
 /// </summary>
 /// <remarks>
 /// Up and Down move the cursor, Home, End, Page Up and Page Down jump, Left closes a row or goes to its parent, Right opens
@@ -43,7 +43,7 @@ public abstract class BaseTreeView : Panel
     [Parameter]
     public bool ExpandOnClick { get; set; }
 
-    /// <summary>Opens a closed row when it's double clicked, before activating it. On by default; turn it off if you open rows yourself when they're activated.</summary>
+    /// <summary>Opens a closed row when it's double clicked, before activating it. Set this to <c>false</c> if you open rows yourself when they're activated.</summary>
     [Parameter]
     public bool ExpandOnDoubleClick { get; set; } = true;
 
@@ -63,7 +63,7 @@ public abstract class BaseTreeView : Panel
     [Parameter]
     public float HighlightFadeTime { get; set; } = 1;
 
-    /// <summary>Whether one of the tree's rows is being dragged. The tree has the <c>dragging</c> class meanwhile.</summary>
+    /// <summary>Returns <c>true</c> while one of the tree's rows is being dragged. The tree has the <c>dragging</c> class while that happens.</summary>
     public bool IsDragging { get; private set; }
 
     /// <summary>Set it to true to rebuild the rows on the next update, after changing the data in a way the tree can't see.</summary>
@@ -193,7 +193,10 @@ public abstract class BaseTreeView : Panel
         }
     }
 
-    /// <summary>Highlights <paramref name="row"/> so the eye finds it: the <c>highlight</c> class for <see cref="HighlightTime"/>, then <c>highlight-fade</c> for <see cref="HighlightFadeTime"/>.</summary>
+    /// <summary>
+    /// Highlights <paramref name="row"/> so the user can spot it. It gets the <c>highlight</c> class for
+    /// <see cref="HighlightTime"/>, and then <c>highlight-fade</c> for <see cref="HighlightFadeTime"/>.
+    /// </summary>
     public void HighlightRow(int row)
     {
         if (row < 0 || row >= _rows.Count)
@@ -436,7 +439,7 @@ public abstract class BaseTreeView : Panel
     {
     }
 
-    /// <summary>Whether <paramref name="row"/> is selected.</summary>
+    /// <summary>Return <c>true</c> if <paramref name="row"/> is selected.</summary>
     protected abstract bool IsRowSelected(int row);
 
     /// <summary>Selects or deselects <paramref name="row"/>.</summary>
@@ -457,13 +460,13 @@ public abstract class BaseTreeView : Panel
     /// <summary>Called when <paramref name="row"/> is right clicked.</summary>
     protected abstract void OnRowContextMenu(int row);
 
-    /// <summary>Whether the user can rename <paramref name="row"/>.</summary>
+    /// <summary>Return <c>true</c> if the user can rename <paramref name="row"/>.</summary>
     protected abstract bool CanRenameRow(int row);
 
     /// <summary>Called when the user has renamed <paramref name="row"/> to <paramref name="text"/>.</summary>
     protected abstract void OnRowRenamed(int row, string text);
 
-    /// <summary>Whether the user can drag <paramref name="row"/>.</summary>
+    /// <summary>Return <c>true</c> if the user can drag <paramref name="row"/>.</summary>
     protected internal abstract bool CanDragRow(int row);
 
     /// <summary>Called when the row <paramref name="sourceRow"/> is dropped on <paramref name="targetRow"/>, or on empty space when <paramref name="targetRow"/> is -1.</summary>
@@ -846,10 +849,10 @@ public abstract class BaseTreeView : Panel
         /// <summary>How deep the row is. Top level rows are 0.</summary>
         public int Depth;
 
-        /// <summary>Whether the row can be opened.</summary>
+        /// <summary><c>true</c> if the row can be opened.</summary>
         public bool HasChildren;
 
-        /// <summary>Whether the row is open.</summary>
+        /// <summary><c>true</c> if the row is open.</summary>
         public bool IsOpen;
     }
 }

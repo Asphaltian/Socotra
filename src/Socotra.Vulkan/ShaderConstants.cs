@@ -78,6 +78,7 @@ internal struct BackdropConstants
     public float Sepia;
     public float BlurScale;
     public int FrameBufferCopyTextureIndex;
+    public int ShapeIndex;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 4)]

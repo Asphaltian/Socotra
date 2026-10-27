@@ -267,5 +267,6 @@ public sealed unsafe partial class VulkanRenderer
         Sepia = command.Filter.Sepia,
         BlurScale = command.Filter.Blur,
         FrameBufferCopyTextureIndex = _lastGrab.Slot,
+        ShapeIndex = command.ShapeIndex,
     };
 }

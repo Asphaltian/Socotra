@@ -8,7 +8,7 @@ public partial class Menu
     private (RootPanel Root, double Time)? _dismissed;
     private bool _closing;
 
-    /// <summary>Whether this menu's options are showing.</summary>
+    /// <summary>Returns <c>true</c> while this menu's options are showing.</summary>
     public bool IsOpen => _list is { IsDeleted: false, IsDeleting: false };
 
     internal static float ReopenGuard { get; set; } = 0.3f;

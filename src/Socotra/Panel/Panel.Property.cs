@@ -13,7 +13,7 @@ public partial class Panel
     private bool _parametersChanged = true;
     private Task? _parametersSetTask;
 
-    /// <summary>Whether the panel has <c>:disabled</c>. Disabled panels don't take input, but still show their <see cref="Tooltip"/>.</summary>
+    /// <summary>Set this to <c>true</c> to give the panel <c>:disabled</c>. Disabled panels don't take input, but they still show their <see cref="Tooltip"/>.</summary>
     public bool Disabled
     {
         get => (PseudoClass & PseudoClass.Disabled) != 0;
@@ -113,6 +113,7 @@ public partial class Panel
             "graphaxis" => new GraphAxis(),
             "curveeditor" => new CurveEditor(),
             "dockhost" => new DockHost(),
+            "floatingwindow" => new FloatingWindow(),
             _ => new Panel(),
         };
 

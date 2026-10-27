@@ -36,13 +36,13 @@ public partial class Panel
 
     /// <summary>
     /// Called for markup inside this panel with a <c>slot</c> attribute, like <c>&lt;div slot="navigator-canvas"&gt;</c>.
-    /// Override it to put <paramref name="panel"/> where that slot goes; otherwise it's offered to the parent.
+    /// Override it to put <paramref name="panel"/> where that slot goes. If you don't, it's offered to the parent instead.
     /// </summary>
     public virtual void OnTemplateSlot(INode element, string slotName, Panel panel) => Parent?.OnTemplateSlot(element, slotName, panel);
 
     /// <summary>
-    /// Says whether the panel builds children from markup: null when it doesn't. Razor files write this for you. Override it
-    /// in a panel that overrides <see cref="BuildRenderTree"/> by hand.
+    /// Says whether the panel builds its children from markup, and it's null when it doesn't. Razor files write this for
+    /// you, so you only need to override it in a panel that overrides <see cref="BuildRenderTree"/> by hand.
     /// </summary>
     protected virtual string? GetRenderTreeChecksum() => ChildContent is null ? null : "1";
 

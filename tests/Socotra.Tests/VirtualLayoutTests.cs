@@ -31,6 +31,27 @@ public class VirtualLayoutTests
     }
 
     [Fact]
+    public void SettingTheItemTemplateAgainRedrawsTheCellsInView()
+    {
+        var (root, list) = List(100);
+
+        var first = 0;
+        list.Item = _ => _ => first++;
+        Update(root);
+        Update(root);
+        Update(root);
+
+        var second = 0;
+        list.Item = _ => _ => second++;
+        Update(root);
+        Update(root);
+        Update(root);
+
+        Assert.Equal(6, list.ChildrenCount);
+        Assert.Equal((6, 6), (first, second));
+    }
+
+    [Fact]
     public void ScrollingSwapsTheRowsInView()
     {
         var (root, list) = List(100);

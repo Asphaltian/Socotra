@@ -23,6 +23,19 @@ public class PanelTests
     }
 
     [Fact]
+    public void AChildDeletingASiblingDuringTickDoesNotTickAnotherTwice()
+    {
+        var root = new RootPanel();
+        var a = root.AddChild(new TickCounter());
+        var b = root.AddChild(new TickCounter());
+        var c = root.AddChild(new TickCounter { OnTick = () => a.Delete(true) });
+
+        root.Update(new Rect(0, 0, 1920, 1080), 0.016f);
+
+        Assert.Equal((0, 1, 1), (a.Ticks, b.Ticks, c.Ticks));
+    }
+
+    [Fact]
     public void APanelSwappedForAnotherIsGoneBeforeTheFrameIsLaidOut()
     {
         var root = Root(".slot { flex-direction: row; justify-content: center; width: 200px; } .item { width: 50px; height: 20px; }");
@@ -177,6 +190,20 @@ public class PanelTests
         Update(root);
 
         Assert.True(other.IsDeleted);
+    }
+
+    private sealed class TickCounter : Panel
+    {
+        public int Ticks { get; private set; }
+
+        public Action? OnTick { get; init; }
+
+        public override void Tick()
+        {
+            Ticks++;
+            OnTick?.Invoke();
+            base.Tick();
+        }
     }
 
     private sealed class FailingDelete : Panel

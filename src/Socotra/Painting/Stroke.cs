@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// The line drawn around shapes, and along lines, arcs and curves. Set it on <see cref="Painter.Stroke"/>. Make one with
-/// <see cref="Solid"/>, <see cref="Dashed"/> or <see cref="Dotted"/>, then change it with the <c>With</c> methods.
+/// <c>Stroke</c> is the line that's drawn around shapes, and along lines, arcs and curves. Set it on
+/// <see cref="Painter.Stroke"/>. You can create one with <see cref="Solid"/>, <see cref="Dashed"/> or
+/// <see cref="Dotted"/>, and then change it with the <c>With</c> methods.
 /// </summary>
 /// <example>
 /// <code>
@@ -18,7 +19,7 @@ namespace Socotra;
 public readonly record struct Stroke
 {
     /// <summary>
-    /// Where the stroke sits on the edge of a closed shape. Lines are always centered.
+    /// Where the stroke sits on the edge of a closed shape. Keep in mind that lines are always centered.
     /// </summary>
     public enum StrokeAlignment
     {
@@ -39,7 +40,7 @@ public readonly record struct Stroke
     internal bool IsDisabled => Style is BorderStyle.None or BorderStyle.Hidden;
 
     /// <summary>
-    /// Where the stroke sits on the edge of closed shapes. Centered unless you change it; lines ignore it.
+    /// Where the stroke sits on the edge of closed shapes. It's centered unless you change it, and lines ignore it.
     /// </summary>
     public StrokeAlignment Alignment { get; init; }
 
@@ -91,7 +92,7 @@ public readonly record struct Stroke
     public enum LineJoin
     {
         /// <summary>
-        /// Sharp. Very sharp corners are cut off flat; see <see cref="MiterLimit"/>.
+        /// Sharp. Very sharp corners get cut off flat, depending on <see cref="MiterLimit"/>.
         /// </summary>
         Miter,
 
@@ -167,9 +168,18 @@ public readonly record struct Stroke
     public Stroke WithCap(LineCap cap) => this with { Cap = cap };
 
     /// <summary>
-    /// What the stroke is painted with: a color, gradient or image. A gradient runs along the whole line, not each dash.
+    /// What the stroke is painted with, which can be a color, a gradient or an image. A gradient runs along the whole line,
+    /// not along each dash.
     /// </summary>
-    public Fill Fill { get; init; }
+    public Fill Fill
+    {
+        get => _fill;
+        init => _fill = value;
+    }
+
+    private readonly Fill _fill;
+
+    internal static ref readonly Fill GetFill(in Stroke stroke) => ref stroke._fill;
 
     /// <summary>
     /// How thick the stroke is, in pixels. 0 draws nothing.
@@ -194,7 +204,8 @@ public readonly record struct Stroke
     /// <summary>
     /// Solid, dashed or dotted. Other border styles, like <see cref="BorderStyle.Double"/>, only show on
     /// <see cref="Painter.Rect(Socotra.Rect, Painter.CornerRadii)"/> with an <see cref="StrokeAlignment.Inside"/> stroke and
-    /// a plain color; everywhere else they draw solid. Drawing throws if a line has too many dashes or dots.
+    /// a plain color, and everywhere else they draw solid. A straight line from one point to another can have as many
+    /// dashes or dots as you like, but please note that drawing anything else throws if it has too many of them.
     /// </summary>
     public BorderStyle Style { get; init; }
 

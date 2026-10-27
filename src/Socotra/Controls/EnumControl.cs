@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// Picks a value of an enum. Up to four values show as a row of buttons, more as a <see cref="DropDown"/>. When the user
-/// picks one, it sends <c>onchange</c>.
+/// <c>EnumControl</c> lets the user pick a value of an enum. Up to four values show up as a row of buttons, and anything
+/// more becomes a <see cref="DropDown"/>. It sends <c>onchange</c> when the user picks one.
 /// </summary>
 /// <example>
 /// <code>

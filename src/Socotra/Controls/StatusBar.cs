@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// A strip along the bottom of a window, with widgets on the <see cref="Left"/> and ones that always show on the
-/// <see cref="Right"/>. A message from <see cref="ShowMessage"/> takes the left widgets' place for a while, without deleting them.
+/// <c>StatusBar</c> is a strip along the bottom of a window, with widgets on the <see cref="Left"/> and ones that always
+/// show on the <see cref="Right"/>. A message from <see cref="ShowMessage"/> takes the place of the left widgets for a
+/// while, but it doesn't delete them.
 /// </summary>
 /// <example>
 /// <code>
@@ -68,7 +69,7 @@ public class StatusBar : Panel
     public T AddRight<T>(T widget, int stretch = 0)
         where T : Panel => AddWidget(Right, widget, stretch);
 
-    /// <summary>Takes <paramref name="widget"/> out of the status bar without deleting it; it's yours again. Returns false if it wasn't in either side.</summary>
+    /// <summary>Takes <paramref name="widget"/> out of the status bar without deleting it, so it's all yours again. Returns <c>false</c> if it wasn't on either side.</summary>
     public bool RemoveWidget(Panel? widget)
     {
         if (widget is null || (widget.Parent != Left && widget.Parent != Right))

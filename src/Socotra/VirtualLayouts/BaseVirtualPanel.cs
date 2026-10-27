@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// The base of <see cref="VirtualList"/> and <see cref="VirtualGrid"/>. Inherit from it to lay long lists
-/// out your own way. Only the items in view have cells, so fill cells in through <see cref="Item"/> or <see cref="OnCreateCell"/>.
+/// <c>BaseVirtualPanel</c> is what <see cref="VirtualList"/> and <see cref="VirtualGrid"/> are built on. Inherit from it
+/// if you want to lay out long lists your own way. Keep in mind that only the items in view have cells, so fill them in
+/// through <see cref="Item"/> or <see cref="OnCreateCell"/>.
 /// </summary>
 public abstract class BaseVirtualPanel : Panel
 {
@@ -15,6 +16,8 @@ public abstract class BaseVirtualPanel : Panel
     private IList? _sourceList;
     private int _sourceListCount;
     private bool _lastCellCreated;
+    private RenderFragment<object>? _item;
+    private bool _itemChanged;
 
     /// <summary>Sets the panel up to scroll.</summary>
     protected BaseVirtualPanel()
@@ -27,9 +30,20 @@ public abstract class BaseVirtualPanel : Panel
     /// <summary>Set to true to lay the cells out again.</summary>
     public bool NeedsRebuild { get; set; }
 
-    /// <summary>The markup for each item's cell. In Razor, write it inside <c>&lt;Item&gt;</c> and use <c>@context</c> for the item.</summary>
+    /// <summary>
+    /// The markup for each item's cell. In Razor you write it inside <c>&lt;Item&gt;</c>, and <c>@context</c> is the item
+    /// that the cell shows.
+    /// </summary>
     [Parameter]
-    public RenderFragment<object>? Item { get; set; }
+    public RenderFragment<object>? Item
+    {
+        get => _item;
+        set
+        {
+            _item = value;
+            _itemChanged = true;
+        }
+    }
 
     /// <summary>Fills in an item's cell from code. You get the cell and its item.</summary>
     [Parameter]
@@ -129,7 +143,7 @@ public abstract class BaseVirtualPanel : Panel
         _cellData.Clear();
     }
 
-    /// <summary>Whether there's an item at <paramref name="i"/>.</summary>
+    /// <summary>Returns <c>true</c> if there's an item at <paramref name="i"/>.</summary>
     public bool HasData(int i) => i >= 0 && i < _items.Count;
 
     /// <summary>Replaces the items, like setting <see cref="Items"/>.</summary>
@@ -145,6 +159,7 @@ public abstract class BaseVirtualPanel : Panel
         }
 
         CheckSourceForChanges();
+        RefreshCellContent();
         UpdateLayoutSpacing(new Vector2(ComputedStyle.ColumnGap?.Value ?? 0, ComputedStyle.RowGap?.Value ?? 0));
         if (!UpdateLayout() && !NeedsRebuild)
         {
@@ -213,6 +228,29 @@ public abstract class BaseVirtualPanel : Panel
             }
 
             _cellData.Remove(index);
+        }
+    }
+
+    private void RefreshCellContent()
+    {
+        if (!_itemChanged)
+        {
+            return;
+        }
+
+        _itemChanged = false;
+        if (Item is null)
+        {
+            return;
+        }
+
+        foreach (var (index, panel) in _created)
+        {
+            if (_cellData.TryGetValue(index, out var data))
+            {
+                panel.ChildContent = Item.Invoke(data);
+                panel.StateHasChanged();
+            }
         }
     }
 

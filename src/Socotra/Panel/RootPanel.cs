@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>The top of a panel tree. Give it the area to fill and call <see cref="Update"/> every frame.</summary>
+/// <summary><c>RootPanel</c> is the top of a panel tree. Give it the area to fill, and call <see cref="Update"/> on every frame.</summary>
 public partial class RootPanel : Panel
 {
     private readonly HashSet<Panel> _styleRuleQueue = [];

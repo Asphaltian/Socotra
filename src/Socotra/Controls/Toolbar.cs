@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A strip of commands and controls, left to right or top to bottom. Everything in it keeps its natural size, and the
-/// strip scrolls when they don't fit. Add any panel to it to put other controls in it. The arrow keys, Home and End
-/// move between its buttons.
+/// <c>Toolbar</c> is a strip of commands and controls, going left to right or top to bottom. Everything in it keeps its
+/// natural size, and the strip scrolls when they don't fit. You can add any panel to it if you want other controls in
+/// there too. The arrow keys, Home and End move between its buttons.
 /// </summary>
 /// <example>
 /// <code>

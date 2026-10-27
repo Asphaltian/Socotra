@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A small preview of a <see cref="Curve"/>, drawn as a line in the panel's text color. Clicking it, or pressing Enter
-/// while it has focus, opens a <see cref="CurveEditor"/> under it.
+/// <c>CurveControl</c> is a small preview of a <see cref="Curve"/>, drawn as a line in the panel's text color. Clicking
+/// it, or pressing Enter while it has focus, opens a <see cref="CurveEditor"/> right under it.
 /// </summary>
 /// <example>
 /// <code>
@@ -54,7 +54,7 @@ public class CurveControl : Panel
     [Parameter]
     public Action<Curve>? ValueChanged { get; set; }
 
-    /// <summary>Whether this control shows a range: both curves with the space between them filled.</summary>
+    /// <summary>Return <c>true</c> if this control shows a range, with both curves and the space between them filled in.</summary>
     protected virtual bool IsRange => false;
 
     /// <summary>Opens the editor under the control, unless it's already open. The user's changes show in the preview straight away.</summary>

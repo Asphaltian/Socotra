@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A box the user can type text into. It takes focus, handles the usual editing keys, mouse selection, the clipboard,
-/// undo and redo, and sends <c>onchange</c> as the text changes, <c>onsubmit</c> when Enter is pressed and <c>oncancel</c> on Escape.
+/// <c>TextEntry</c> is a box that the user can type text into. It takes focus, and it handles the usual editing keys,
+/// selecting with the mouse, the clipboard, and undo and redo. It sends <c>onchange</c> as the text changes,
+/// <c>onsubmit</c> when Enter is pressed and <c>oncancel</c> when Escape is pressed.
 /// </summary>
 /// <example>
 /// <code>
@@ -43,7 +44,7 @@ public partial class TextEntry : Panel
         AddClass("textentry");
         CanDragScroll = false;
         Label = new Label("", "content-label") { Multiline = _multiline };
-        Label.Style.WhiteSpace = WhiteSpace.Pre;
+        Label.Style.WhiteSpace = LabelWhiteSpace;
         AddChild(Label);
     }
 
@@ -122,7 +123,11 @@ public partial class TextEntry : Panel
     /// <summary>How a <see cref="Numeric"/> entry formats its number, as a .NET format string like <c>0.00</c>.</summary>
     public string? NumberFormat { get; set; }
 
-    /// <summary>Lets the user type several lines. Enter adds a new line instead of submitting. Adds the <c>is-multiline</c> class.</summary>
+    /// <summary>
+    /// Set this to <c>true</c> to let the user type more than one line. Lines wrap at the edge of the entry, and Enter
+    /// starts a new line instead of submitting. The entry also gets the <c>is-multiline</c> class, in case you want to
+    /// style it differently.
+    /// </summary>
     [Parameter]
     public bool Multiline
     {
@@ -136,9 +141,12 @@ public partial class TextEntry : Panel
 
             _multiline = value;
             Label.Multiline = value;
+            Label.Style.WhiteSpace = LabelWhiteSpace;
             SetClass("is-multiline", value);
         }
     }
+
+    private WhiteSpace LabelWhiteSpace => _multiline ? WhiteSpace.PreWrap : WhiteSpace.Pre;
 
     /// <summary>The lowest number a <see cref="Numeric"/> entry accepts.</summary>
     public float? MinValue { get; set; }
@@ -210,7 +218,7 @@ public partial class TextEntry : Panel
     /// <summary>The label holding the typed text.</summary>
     protected Label Label { get; }
 
-    /// <summary>Whether the user can change the text right now: the entry is neither <see cref="ReadOnly"/> nor <see cref="Panel.Disabled"/>.</summary>
+    /// <summary>Returns <c>true</c> if the user can change the text right now, which is when the entry is neither <see cref="ReadOnly"/> nor <see cref="Panel.Disabled"/>.</summary>
     protected bool CanEdit => !ReadOnly && !Disabled;
 
     /// <inheritdoc/>
@@ -561,7 +569,10 @@ public partial class TextEntry : Panel
         }
     }
 
-    /// <summary>The text as a tidy number: commas read as decimal points, anything unreadable as 0, kept between <see cref="MinValue"/> and <see cref="MaxValue"/> and formatted with <see cref="NumberFormat"/>.</summary>
+    /// <summary>
+    /// Returns the text as a tidy number. Commas count as decimal points, anything unreadable becomes 0, and the number
+    /// is kept between <see cref="MinValue"/> and <see cref="MaxValue"/> and formatted with <see cref="NumberFormat"/>.
+    /// </summary>
     public virtual string FixNumeric()
     {
         if (!Translation.TryParseTypedNumber(Text, out var number))
@@ -792,7 +803,7 @@ public partial class TextEntry : Panel
         base.OnEvent(e);
     }
 
-    /// <summary>Whether the entry counts as empty for <c>:empty</c>: when there's no text.</summary>
+    /// <summary>The entry counts as empty for <c>:empty</c> when there's no text in it.</summary>
     protected override bool IsPanelEmpty() => TextLength == 0;
 
     private void PasteText(string text, int start, int end, bool select = false)

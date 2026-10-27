@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A tab in a <see cref="TabBar"/>. Clicking it selects it. It can show an icon, a count badge and a close button,
-/// and the user can middle-click it to close it or right-click it for a menu.
+/// <c>Tab</c> is one tab in a <see cref="TabBar"/>, and clicking it selects it. It can show an icon, a count badge and a
+/// close button, and the user can middle-click it to close it or right-click it for a menu.
 /// </summary>
 public class Tab : Panel
 {
@@ -24,6 +24,7 @@ public class Tab : Panel
     {
         AddClass("tab");
         AcceptsFocus = true;
+        FocusOnClick = false;
         CanDragScroll = false;
         _icon = Add.Icon(null, "tab-icon");
         _image = AddChild(new Image());
@@ -65,7 +66,7 @@ public class Tab : Panel
         }
     }
 
-    /// <summary>A number shown in a badge on the tab, like unread messages. Null hides the badge; zero is shown.</summary>
+    /// <summary>A number that's shown in a badge on the tab, like unread messages. Set it to null to hide the badge, since zero still shows up.</summary>
     [Parameter]
     public int? Count
     {
@@ -78,10 +79,10 @@ public class Tab : Panel
         }
     }
 
-    /// <summary>Whether the bar is hiding this tab's text to save space, showing only its icon.</summary>
+    /// <summary>Returns <c>true</c> while the bar hides this tab's text to save space, so only its icon shows.</summary>
     public bool IsIconOnly => HasClass("icon-only");
 
-    /// <summary>The name of an icon shown before the text. It needs an icon font; see <see cref="IconPanel"/>.</summary>
+    /// <summary>The name of an icon that's shown before the text. Keep in mind that it needs an icon font, so take a look at <see cref="IconPanel"/>.</summary>
     [Parameter]
     public string? Icon
     {
@@ -114,14 +115,14 @@ public class Tab : Panel
         set => _close.Style.Display = value ? DisplayMode.Flex : DisplayMode.None;
     }
 
-    /// <summary>Whether this is the selected tab. The selected tab has the <c>selected</c> class.</summary>
+    /// <summary>Returns <c>true</c> if this is the selected tab. The selected tab has the <c>selected</c> class.</summary>
     public bool Selected => HasClass("selected");
 
-    /// <summary>Called with the menu to show when the tab is right-clicked; add options to it. Closable tabs get a Close option too.</summary>
+    /// <summary>Called with the menu to show when the tab is right-clicked, so add your options to it. Tabs that can be closed get a Close option too.</summary>
     [Parameter]
     public Action<Menu>? BuildContextMenu { get; set; }
 
-    /// <summary>Whether the tab can be dragged, which is when its bar has <see cref="TabBar.AllowReorder"/> on.</summary>
+    /// <summary>Returns <c>true</c> if the tab can be dragged, which is when its bar has <see cref="TabBar.AllowReorder"/> on.</summary>
     public override bool WantsDrag => Bar?.AllowReorder == true;
 
     private bool HasIcon => IconTexture is not null || !string.IsNullOrWhiteSpace(Icon);
@@ -235,24 +236,11 @@ public class Tab : Panel
         Bar?.EndReorder(e.ScreenPosition);
     }
 
-    /// <summary>Stops a drag, if one is going on.</summary>
-    protected override void OnEscape(PanelEvent e)
+    /// <summary>Puts the tab back where it was when the user presses Escape while dragging it.</summary>
+    protected override void OnDragCancel(DragEvent e)
     {
-        if (Bar?.IsReordering == true)
-        {
-            Bar.CancelReorder();
-            e.StopPropagation();
-            return;
-        }
-
-        base.OnEscape(e);
-    }
-
-    /// <summary>Stops a drag, if one is going on.</summary>
-    protected override void OnBlur(PanelEvent e)
-    {
+        e.StopPropagation();
         Bar?.CancelReorder();
-        base.OnBlur(e);
     }
 
     private void UpdateIcon()

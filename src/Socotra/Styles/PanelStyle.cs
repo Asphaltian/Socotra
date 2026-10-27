@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>Styles you set on one panel from code, through <see cref="Panel.Style"/>. They win over any stylesheet.</summary>
+/// <summary><c>PanelStyle</c> is the styles that you set on one panel from code, through <see cref="Panel.Style"/>. They always win over any stylesheet.</summary>
 public sealed class PanelStyle : Styles
 {
     private readonly Panel _panel;
@@ -18,10 +18,10 @@ public sealed class PanelStyle : Styles
         _panel = panel;
     }
 
-    /// <summary>Whether a stylesheet rule gives this panel a <c>::before</c> element.</summary>
+    /// <summary>Returns <c>true</c> if a stylesheet rule gives this panel a <c>::before</c> element.</summary>
     public bool HasBeforeElement { get; private set; }
 
-    /// <summary>Whether a stylesheet rule gives this panel an <c>::after</c> element.</summary>
+    /// <summary>Returns <c>true</c> if a stylesheet rule gives this panel an <c>::after</c> element.</summary>
     public bool HasAfterElement { get; private set; }
 
     internal bool IsDirty { get; private set; } = true;
@@ -109,7 +109,7 @@ public sealed class PanelStyle : Styles
             _final.Inherit(parentStyles);
         }
 
-        _final.FillDefaults();
+        _final.FillDefaults(cascade.Scale);
         _final.ResolveCurrentColor(cascade.ParentStyles);
         changed |= _panel.Transitions.Run(_final, now);
         changed |= _final.ApplyAnimation(_panel);

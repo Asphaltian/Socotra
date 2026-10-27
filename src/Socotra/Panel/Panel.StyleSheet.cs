@@ -77,14 +77,14 @@ public partial class Panel
 }
 
 /// <summary>
-/// Attaches a stylesheet file to panels of this type, but not to types built on it. A type with a
-/// <see cref="StyleSheet.InlineAttribute"/> of its own doesn't load it.
+/// Put this on a panel class to attach a stylesheet file to panels of that type. Keep in mind that types built on it
+/// don't get it, and a type with its own <see cref="StyleSheet.InlineAttribute"/> doesn't load it.
 /// </summary>
 /// <remarks>
 /// For a Razor component built with <c>Socotra.Generator</c>, a relative path starts next to its <c>.razor</c> file,
 /// a path starting with <c>/</c> starts from your program's folder, and leaving the path out loads
-/// <c>Name.razor.scss</c> from beside it. A component with no <see cref="StyleSheetAttribute"/> at all loads that file
-/// too, if it's there. Anything else starts from your program's folder.
+/// <c>Name.razor.scss</c> from right next to it. A component without any <see cref="StyleSheetAttribute"/> loads that
+/// file too, if it's there. Everything else starts from your program's folder.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
 public sealed class StyleSheetAttribute(string? name = null) : Attribute
@@ -95,7 +95,7 @@ public sealed class StyleSheetAttribute(string? name = null) : Attribute
 
 /// <summary>
 /// Where a Razor component's <c>.razor</c> file sits, relative to your program's folder, so its stylesheets can be
-/// found beside it. <c>Socotra.Generator</c> adds it for you; you don't need to write it yourself.
+/// found next to it. <c>Socotra.Generator</c> adds this for you, so you won't need to write it yourself.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
 public sealed class ClassFileLocationAttribute(string path) : Attribute

@@ -22,7 +22,7 @@ public partial class Panel
             {
                 if (HasBackdropFilter)
                 {
-                    painter.FilterBackdrop(Box.Rect, _paintCache.Backdrop, _paintCache.OuterRadii);
+                    painter.FilterBackdrop(Box.Rect, _paintCache.Backdrop, _paintCache.OuterRadii, _paintCache.Background.Descriptor.BorderShapeData);
                 }
 
                 if (layered || this is RootPanel)
@@ -162,11 +162,17 @@ public partial class Panel
         }
 
         var visualRoot = VisualRoot;
+        var drawEffects = !HasTextClipFillAbove();
         foreach (var label in Descendants.Prepend(this).OfType<Label>())
         {
             if (!label.IsVisible || label.VisualRoot != visualRoot || !label.GetTextMask(out var texture, out var rect))
             {
                 continue;
+            }
+
+            if (drawEffects)
+            {
+                label.DrawTextEffects(painter);
             }
 
             painter.Rect(descriptor with
@@ -179,6 +185,19 @@ public partial class Panel
                 BorderImage = default,
             });
         }
+    }
+
+    private bool HasTextClipFillAbove()
+    {
+        for (var panel = VisualParent; panel is not null; panel = panel.VisualParent)
+        {
+            if (panel.HasBackground && panel._paintCache.ClipsBackgroundToText && panel._paintCache.Background.HasFill && !panel.LayoutTree.IsInlineParticipant)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Vector4 GetBackgroundClipInset(BackgroundClip clip)

@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>The modifier keys held with a button or mouse event. Combine them with <c>|</c>.</summary>
+/// <summary>The modifier keys that are held during a button or mouse event. You can combine them with <c>|</c>.</summary>
 [Flags]
 public enum KeyboardModifiers
 {

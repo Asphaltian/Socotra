@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// One row in a menu, and the menu of options it opens. A menu with no options is a plain command; give it options
-/// and it opens a submenu. A menu with no parent is a context menu, or a heading in a <see cref="MenuBar"/>.
+/// <c>Menu</c> is one row in a menu, along with the menu of options that it opens. A menu without options is just a
+/// command, and giving it options turns it into a submenu. A menu without a parent is a context menu, or a heading in
+/// a <see cref="MenuBar"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -78,7 +79,7 @@ public partial class Menu : Panel
         }
     }
 
-    /// <summary>The name of an icon shown before the text. It needs an icon font; see <see cref="IconPanel"/>.</summary>
+    /// <summary>The name of an icon that's shown before the text. Keep in mind that it needs an icon font, so take a look at <see cref="IconPanel"/>.</summary>
     [Parameter]
     public string? Icon
     {
@@ -135,7 +136,7 @@ public partial class Menu : Panel
         }
     }
 
-    /// <summary>Text shown on the right of the row, like <c>Ctrl+S</c>. It's only shown; handle the key yourself.</summary>
+    /// <summary>Text that's shown on the right of the row, like <c>Ctrl+S</c>. Please note that it's only shown, so you still have to handle the key yourself.</summary>
     [Parameter]
     public string? Shortcut
     {
@@ -150,7 +151,7 @@ public partial class Menu : Panel
 
     /// <summary>
     /// Whether the menu stays open after this row is clicked. By default <see cref="Checkable"/> rows keep it open, so
-    /// several can be flipped in one go, and commands close it.
+    /// the user can flip several of them in one go, and commands close it.
     /// </summary>
     [Parameter]
     public bool StaysOpen
@@ -190,7 +191,7 @@ public partial class Menu : Panel
     /// <summary>Everything the menu shows, in order: its options and any other panels added with <see cref="AddWidget"/>.</summary>
     public IReadOnlyList<Panel> Rows => _rows;
 
-    /// <summary>Whether this row opens a submenu.</summary>
+    /// <summary>Returns <c>true</c> if this row opens a submenu.</summary>
     public bool HasOptions => _rows.Count > 0;
 
     /// <summary>Adds an option showing <paramref name="text"/> and the icon named <paramref name="icon"/> that calls <paramref name="action"/> when clicked. Returns it, so you can set it up further or give it options of its own.</summary>

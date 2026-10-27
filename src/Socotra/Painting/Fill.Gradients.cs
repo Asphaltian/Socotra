@@ -30,7 +30,7 @@ public readonly partial struct Fill
     public static GradientBuilder ConicGradient(float angle = 0) => new(GradientType.Conic, angle);
 
     /// <summary>
-    /// A gradient you build one stop at a time. Add 2 to 8 stops, then use it as a <see cref="Fill"/>.
+    /// A gradient that you build one stop at a time. Add 2 to 8 stops, and then use it as a <see cref="Fill"/>.
     /// </summary>
     public readonly struct GradientBuilder
     {
@@ -134,7 +134,7 @@ public readonly partial struct Fill
     }
 
     /// <summary>
-    /// One color in a gradient and where it sits. Pass a list of these to the gradient methods.
+    /// One color in a gradient, along with where it sits. Pass a list of these to the gradient methods.
     /// </summary>
     /// <example>
     /// <code>

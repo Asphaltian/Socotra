@@ -11,8 +11,9 @@ public partial class CurveEditor
     public Vector2 ViewMax => ViewUnits(_canvas.ViewMax);
 
     /// <summary>
-    /// How far the user can pan and zoom, in the curve's own units, or null for no limit. Only the time limits apply; the
-    /// view can move freely up and down. The limits follow the curve when its ranges change.
+    /// How far the user can pan and zoom, in the curve's own units, or null if there's no limit. Please note that only the
+    /// time limits apply, so the view can still move freely up and down. The limits follow the curve when its ranges
+    /// change.
     /// </summary>
     public Rect? NavigationBounds
     {

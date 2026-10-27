@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>Values for <c>overflow</c>: what happens to children that don't fit inside the panel.</summary>
+/// <summary>Values for <c>overflow</c>, which decides what happens to children that don't fit inside the panel.</summary>
 public enum OverflowMode
 {
     /// <summary><c>visible</c>: they're drawn outside the panel.</summary>
@@ -19,7 +19,7 @@ public enum OverflowMode
     ClipWhole,
 }
 
-/// <summary>Values for <c>align-items</c>, <c>align-self</c>, <c>align-content</c>, <c>justify-items</c> and <c>justify-self</c>: where things sit on an axis.</summary>
+/// <summary>Values for <c>align-items</c>, <c>align-self</c>, <c>align-content</c>, <c>justify-items</c> and <c>justify-self</c>, which decide where things sit on an axis.</summary>
 public enum Align
 {
     /// <summary><c>auto</c>: do what the parent says.</summary>
@@ -50,7 +50,7 @@ public enum Align
     SpaceEvenly,
 }
 
-/// <summary>Values for <c>position</c>: how the panel is placed.</summary>
+/// <summary>Values for <c>position</c>, which decides how the panel is placed.</summary>
 public enum PositionMode
 {
     /// <summary><c>static</c>: <c>top</c>, <c>right</c>, <c>bottom</c> and <c>left</c> have no effect.</summary>
@@ -66,7 +66,7 @@ public enum PositionMode
     Fixed,
 }
 
-/// <summary>Values for <c>flex-direction</c>: which way children are laid out.</summary>
+/// <summary>Values for <c>flex-direction</c>, which decides which way children are laid out.</summary>
 public enum FlexDirection
 {
     /// <summary><c>column</c>: top to bottom.</summary>
@@ -82,7 +82,7 @@ public enum FlexDirection
     RowReverse,
 }
 
-/// <summary>Values for <c>justify-content</c>: where children go along the main axis.</summary>
+/// <summary>Values for <c>justify-content</c>, which decides where children go along the main axis.</summary>
 public enum Justify
 {
     /// <summary><c>flex-start</c>, <c>start</c> or <c>left</c>: packed at the start.</summary>
@@ -103,11 +103,11 @@ public enum Justify
     /// <summary><c>space-evenly</c>: spread out, with the same space at the edges as between each one.</summary>
     SpaceEvenly,
 
-    /// <summary><c>stretch</c> or <c>normal</c>, the default. In a flex container it acts like <see cref="FlexStart"/>; in a grid, <c>auto</c> columns and rows stretch to fill the space.</summary>
+    /// <summary><c>stretch</c> or <c>normal</c>, the default. In a flex container it acts like <see cref="FlexStart"/>, and in a grid, <c>auto</c> columns and rows stretch to fill the space.</summary>
     Stretch,
 }
 
-/// <summary>Values for <c>display</c>: how a panel lays out its children, or whether it shows at all.</summary>
+/// <summary>Values for <c>display</c>, which decides how a panel lays out its children, or whether it shows up at all.</summary>
 public enum DisplayMode
 {
     /// <summary><c>flex</c>, the default: children go in a row or a column, as <c>flex-direction</c> says.</summary>
@@ -129,7 +129,7 @@ public enum DisplayMode
     Inline,
 }
 
-/// <summary>Values for <c>grid-auto-flow</c>: where grid items without a set position go.</summary>
+/// <summary>Values for <c>grid-auto-flow</c>, which decides where grid items without a set position go.</summary>
 public enum GridAutoFlow
 {
     /// <summary><c>row</c>: fill each row in turn.</summary>
@@ -145,7 +145,7 @@ public enum GridAutoFlow
     ColumnDense,
 }
 
-/// <summary>Values for <c>flex-wrap</c>: whether children that don't fit start a new line.</summary>
+/// <summary>Values for <c>flex-wrap</c>, which decides whether children that don't fit start a new line.</summary>
 public enum Wrap
 {
     /// <summary><c>nowrap</c>: everything stays on one line.</summary>
@@ -158,7 +158,7 @@ public enum Wrap
     WrapReverse,
 }
 
-/// <summary>Values for <c>pointer-events</c>: whether a panel reacts to the mouse. Write <c>auto</c> in a stylesheet to take the parent's value.</summary>
+/// <summary>Values for <c>pointer-events</c>, which decides whether a panel reacts to the mouse. Write <c>auto</c> in a stylesheet if you want the parent's value.</summary>
 public enum PointerEvents
 {
     /// <summary><c>all</c>: the panel takes mouse input.</summary>
@@ -168,7 +168,7 @@ public enum PointerEvents
     None,
 }
 
-/// <summary>Values for <c>text-align</c>: how lines of text line up.</summary>
+/// <summary>Values for <c>text-align</c>, which decides how lines of text line up.</summary>
 public enum TextAlign
 {
     /// <summary>Not a <c>text-align</c> value. Stylesheets never set it, so you won't need it.</summary>
@@ -187,7 +187,7 @@ public enum TextAlign
     Justify,
 }
 
-/// <summary>Values for <c>text-overflow</c>: what text that doesn't fit looks like.</summary>
+/// <summary>Values for <c>text-overflow</c>, which decides what text that doesn't fit looks like.</summary>
 public enum TextOverflow
 {
     /// <summary>Text that doesn't fit is still drawn. This is the default.</summary>
@@ -200,7 +200,7 @@ public enum TextOverflow
     Clip,
 }
 
-/// <summary>Values for <c>word-break</c>: where lines can break.</summary>
+/// <summary>Values for <c>word-break</c>, which decides where lines can break.</summary>
 public enum WordBreak
 {
     /// <summary><c>normal</c>, <c>break-word</c> or <c>keep-all</c>: lines break between words.</summary>
@@ -210,7 +210,7 @@ public enum WordBreak
     BreakAll,
 }
 
-/// <summary>Values for <c>text-transform</c>: how the text's capitals are changed.</summary>
+/// <summary>Values for <c>text-transform</c>, which changes the capitals in the text.</summary>
 public enum TextTransform
 {
     /// <summary><c>none</c>: the text is left as it is.</summary>
@@ -226,7 +226,7 @@ public enum TextTransform
     Lowercase,
 }
 
-/// <summary>Values for <c>text-decoration-skip-ink</c>: whether lines on the text break around letters.</summary>
+/// <summary>Values for <c>text-decoration-skip-ink</c>, which decides whether lines on the text break around letters.</summary>
 public enum TextSkipInk
 {
     /// <summary><c>auto</c> or <c>all</c>: lines skip over the glyphs they'd cross.</summary>
@@ -236,7 +236,7 @@ public enum TextSkipInk
     None,
 }
 
-/// <summary>Values for <c>text-decoration-style</c>: how lines on the text are drawn.</summary>
+/// <summary>Values for <c>text-decoration-style</c>, which decides how lines on the text are drawn.</summary>
 public enum TextDecorationStyle
 {
     /// <summary><c>solid</c>: one line.</summary>
@@ -255,7 +255,7 @@ public enum TextDecorationStyle
     Wavy,
 }
 
-/// <summary>Values for <c>text-decoration-line</c>: which lines are drawn on the text. Combine them to draw several.</summary>
+/// <summary>Values for <c>text-decoration-line</c>, which decides what lines are drawn on the text. You can combine them to draw several.</summary>
 [Flags]
 public enum TextDecoration
 {
@@ -272,7 +272,7 @@ public enum TextDecoration
     Overline = 8,
 }
 
-/// <summary>Values for <c>white-space</c>: whether spaces and line breaks are kept and lines wrap.</summary>
+/// <summary>Values for <c>white-space</c>, which decides whether spaces and line breaks are kept, and whether lines wrap.</summary>
 public enum WhiteSpace
 {
     /// <summary><c>normal</c>: spaces collapse and lines wrap.</summary>
@@ -294,7 +294,7 @@ public enum WhiteSpace
     BreakSpaces,
 }
 
-/// <summary>Values for <c>font-style</c>: whether text is slanted.</summary>
+/// <summary>Values for <c>font-style</c>, which decides whether text is slanted.</summary>
 [Flags]
 public enum FontStyle
 {
@@ -308,7 +308,7 @@ public enum FontStyle
     Oblique = 4,
 }
 
-/// <summary>Values for <c>font-smooth</c>: whether the edges of text are smoothed.</summary>
+/// <summary>Values for <c>font-smooth</c>, which decides whether the edges of text are smoothed.</summary>
 public enum FontSmooth
 {
     /// <summary><c>auto</c>: smoothed where it can be.</summary>
@@ -321,7 +321,7 @@ public enum FontSmooth
     Always,
 }
 
-/// <summary>Values for <c>object-fit</c>: how an image is sized to fit its panel.</summary>
+/// <summary>Values for <c>object-fit</c>, which decides how an image is sized to fit its panel.</summary>
 public enum ObjectFit
 {
     /// <summary><c>fill</c>: stretched to fill the content box, ignoring the aspect ratio.</summary>
@@ -337,7 +337,7 @@ public enum ObjectFit
     None,
 }
 
-/// <summary>Values for <c>isolation</c>: whether a panel and its children blend together before they blend with what's behind them.</summary>
+/// <summary>Values for <c>isolation</c>, which decides whether a panel and its children blend together before they blend with what's behind them.</summary>
 public enum Isolation
 {
     /// <summary><c>auto</c>: only when something else about the panel needs it.</summary>
@@ -347,7 +347,7 @@ public enum Isolation
     Isolate,
 }
 
-/// <summary>Values for <c>scrollbar-gutter</c>: whether space is kept for the scrollbar.</summary>
+/// <summary>Values for <c>scrollbar-gutter</c>, which decides whether space is kept for the scrollbar.</summary>
 public enum ScrollbarGutter
 {
     /// <summary><c>auto</c>: the scrollbar sits over the content.</summary>
@@ -360,7 +360,7 @@ public enum ScrollbarGutter
     StableBothEdges,
 }
 
-/// <summary>Values for <c>overscroll-behavior</c>: what happens when scrolling reaches the end.</summary>
+/// <summary>Values for <c>overscroll-behavior</c>, which decides what happens when scrolling reaches the end.</summary>
 public enum OverscrollBehavior
 {
     /// <summary><c>auto</c>: scrolling carries on to the parent, and the edge bounces.</summary>
@@ -373,7 +373,7 @@ public enum OverscrollBehavior
     None,
 }
 
-/// <summary>Values for <c>background-repeat</c> and <c>mask-repeat</c>: whether an image tiles.</summary>
+/// <summary>Values for <c>background-repeat</c> and <c>mask-repeat</c>, which decide whether an image tiles.</summary>
 public enum BackgroundRepeat
 {
     /// <summary><c>repeat</c>: tiled across and down.</summary>
@@ -392,7 +392,7 @@ public enum BackgroundRepeat
     Clamp,
 }
 
-/// <summary>Values for <c>image-rendering</c>: how images look when they're scaled.</summary>
+/// <summary>Values for <c>image-rendering</c>, which decides how images look when they're scaled.</summary>
 public enum ImageRendering
 {
     /// <summary><c>auto</c> or <c>anisotropic</c>: smooth, and stays sharp when tilted in 3D.</summary>
@@ -408,7 +408,7 @@ public enum ImageRendering
     Point,
 }
 
-/// <summary>Values for <c>border-style</c>: how the border is drawn.</summary>
+/// <summary>Values for <c>border-style</c>, which decides how the border is drawn.</summary>
 public enum BorderStyle
 {
     /// <summary><c>solid</c>, the default: one solid line.</summary>
@@ -442,7 +442,7 @@ public enum BorderStyle
     Outset,
 }
 
-/// <summary>Values for <c>background-clip</c>: how far out the background is drawn.</summary>
+/// <summary>Values for <c>background-clip</c>, which decides how far out the background is drawn.</summary>
 public enum BackgroundClip
 {
     /// <summary><c>border-box</c>: everything, under the border too.</summary>
@@ -458,7 +458,7 @@ public enum BackgroundClip
     Text,
 }
 
-/// <summary>Values for <c>mask-mode</c>: what in the mask image decides which parts of the panel show.</summary>
+/// <summary>Values for <c>mask-mode</c>, which decides what in the mask image picks the parts of the panel that show.</summary>
 public enum MaskMode
 {
     /// <summary><c>match-source</c>: the image's luminance.</summary>
@@ -471,7 +471,7 @@ public enum MaskMode
     Luminance,
 }
 
-/// <summary>Values for <c>mask-scope</c>: what the mask controls.</summary>
+/// <summary>Values for <c>mask-scope</c>, which decides what the mask controls.</summary>
 public enum MaskScope
 {
     /// <summary><c>default</c>: the mask hides the panel.</summary>
@@ -481,7 +481,7 @@ public enum MaskScope
     Filter,
 }
 
-/// <summary>Values for how <c>border-image</c> fills the edges.</summary>
+/// <summary>Values that decide how <c>border-image</c> fills the edges.</summary>
 public enum BorderImageRepeat
 {
     /// <summary><c>stretch</c>: each edge is stretched to fit.</summary>
@@ -491,7 +491,7 @@ public enum BorderImageRepeat
     Round,
 }
 
-/// <summary>Values for whether <c>border-image</c> draws the middle of the image.</summary>
+/// <summary>Values that decide whether <c>border-image</c> draws the middle of the image.</summary>
 public enum BorderImageFill
 {
     /// <summary>Only the edges are drawn. This is the default.</summary>

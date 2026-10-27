@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>Anything stylesheets can style, like a panel or an element inside rich text.</summary>
+/// <summary>Anything that stylesheets can style, like a panel or an element inside rich text.</summary>
 public interface IStyleTarget
 {
     /// <summary>The element name that selectors like <c>button</c> match.</summary>
@@ -21,7 +21,7 @@ public interface IStyleTarget
     /// <summary>Its position among its siblings, starting at 0.</summary>
     int SiblingIndex { get; }
 
-    /// <summary>Whether it has every one of <paramref name="classes"/>.</summary>
+    /// <summary>Returns <c>true</c> if it has every one of <paramref name="classes"/>.</summary>
     bool HasClasses(string[] classes);
 
     internal bool IsBeforeOrAfter => (PseudoClass & (PseudoClass.Before | PseudoClass.After)) != 0;

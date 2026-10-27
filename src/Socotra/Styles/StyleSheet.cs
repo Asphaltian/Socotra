@@ -3,8 +3,8 @@ using System.Text.RegularExpressions;
 namespace Socotra;
 
 /// <summary>
-/// A stylesheet you attach to a panel through its <see cref="Panel.StyleSheet"/>. Write it in CSS, or in SCSS with
-/// nesting, <c>&amp;</c>, variables, mixins, imports and <c>@keyframes</c>.
+/// <c>StyleSheet</c> is a stylesheet that you attach to a panel through its <see cref="Panel.StyleSheet"/>. You can write
+/// it in CSS, or in SCSS with nesting, <c>&amp;</c>, variables, mixins, imports and <c>@keyframes</c>.
 /// </summary>
 /// <example><code>
 /// // Load a file for a panel and everything inside it
@@ -160,8 +160,8 @@ public sealed partial class StyleSheet
     private static partial Regex VariablePattern();
 
     /// <summary>
-    /// Put this on a panel class to give every panel of that type a stylesheet written right in the code.
-    /// Give each one its own <paramref name="name"/>; two classes using the same name get the same stylesheet.
+    /// Put this on a panel class to give every panel of that type a stylesheet written right in the code. Make sure you
+    /// give each one its own <paramref name="name"/>, since two classes with the same name get the same stylesheet.
     /// </summary>
     /// <example><code>
     /// // Every Badge gets these styles

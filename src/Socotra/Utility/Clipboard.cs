@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// Copy and paste text. Hook it up to your platform's clipboard once at startup by setting
-/// <see cref="GetTextHandler"/> and <see cref="SetTextHandler"/>. Until you do, copying does nothing and pasting finds nothing.
+/// <c>Clipboard</c> lets you copy and paste text. Don't forget to hook it up to your platform's clipboard once at
+/// startup by setting <see cref="GetTextHandler"/> and <see cref="SetTextHandler"/>, otherwise copying does nothing and
+/// pasting finds nothing.
 /// </summary>
 /// <example>
 /// <code>

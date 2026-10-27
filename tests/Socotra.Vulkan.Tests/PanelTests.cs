@@ -17,6 +17,27 @@ public class PanelTests(GpuHost gpu)
     }
 
     [GpuFact]
+    public void BackdropFiltersStayInsideTheBorderShape()
+    {
+        var image = Paint("""
+            .root { background-color: white; }
+            .dark { position: absolute; left: 0px; top: 0px; width: 20px; height: 40px; background-color: black; }
+            .glass { position: absolute; left: 0px; top: 0px; width: 40px; height: 40px; backdrop-filter: invert(1); border-shape: circle(10px at 50% 50%); }
+            """, root =>
+        {
+            root.AddChild<Panel>("dark");
+            root.AddChild<Panel>("glass");
+        }, 40, 40);
+
+        image.Expect(15, 20, Rgba.White);
+        image.Expect(25, 20, Rgba.Black);
+        image.Expect(2, 2, Rgba.Black);
+        image.Expect(37, 2, Rgba.White);
+        image.Expect(2, 37, Rgba.Black);
+        image.Expect(37, 37, Rgba.White);
+    }
+
+    [GpuFact]
     public void BackgroundsFillTheBorderBox()
     {
         var image = Paint("""
@@ -210,6 +231,31 @@ public class PanelTests(GpuHost gpu)
         Assert.True(lit > 200);
         Assert.True(mismatched <= lit / 100, $"{mismatched} of {lit} pixels differ");
         Assert.InRange(clippedInk, plainInk * 0.99, plainInk * 1.01);
+    }
+
+    [GpuFact]
+    public void TextClippedBackgroundKeepsTheTextShadowsColor()
+    {
+        Fonts.Load("Data/Fonts/Lato-Regular.ttf");
+        var image = Paint("""
+            .root { background-color: black; }
+            .box { position: absolute; left: 10px; top: 10px; width: 180px; height: 80px; background-color: red; background-clip: text; }
+            .label { font-family: Lato; font-size: 60px; color: blue; text-shadow: 8px 0px lime; }
+            """, root => root.AddChild<Panel>("box").AddChild<Label>("label").Text = "Hi", 200, 100);
+
+        int red = 0, lime = 0;
+        for (int y = 0; y < 100; y++)
+        {
+            for (int x = 0; x < 200; x++)
+            {
+                Assert.Equal(0, image[x, y].B);
+                red += image[x, y].R > 200 && image[x, y].G < 60 ? 1 : 0;
+                lime += image[x, y].G > 200 && image[x, y].R < 60 ? 1 : 0;
+            }
+        }
+
+        Assert.True(red > 200, $"{red} red pixels");
+        Assert.True(lime > 100, $"{lime} lime pixels");
     }
 
     private sealed class UnscaledRoot : RootPanel

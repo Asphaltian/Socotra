@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>One choice in a <see cref="DropDown"/> or <see cref="ButtonGroup"/>: the text shown for it and the value it stands for.</summary>
+/// <summary><c>Option</c> is one choice in a <see cref="DropDown"/> or <see cref="ButtonGroup"/>, with the text that's shown for it and the value it stands for.</summary>
 public class Option
 {
     /// <summary>Makes an empty option.</summary>

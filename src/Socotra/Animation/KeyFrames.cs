@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>A <c>@keyframes</c> rule from a stylesheet: the styles an animation moves through, from start to end.</summary>
+/// <summary><c>KeyFrames</c> is a <c>@keyframes</c> rule from a stylesheet. It holds the styles that an animation moves through, from start to end.</summary>
 public sealed class KeyFrames
 {
     internal KeyFrames(string name)

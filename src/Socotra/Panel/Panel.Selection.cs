@@ -4,7 +4,8 @@ public partial class Panel
 {
     /// <summary>
     /// Lets the user select the text of the labels inside this panel by dragging across them, and copy it with Ctrl+C.
-    /// Text in an inline paragraph copies as one string; separate labels are joined with a space, or a new line in a column.
+    /// Text in an inline paragraph copies as one string, and separate labels are joined with a space, or with a new line
+    /// in a column.
     /// </summary>
     public bool AllowChildSelection { get; set; }
 

@@ -121,6 +121,8 @@ internal static class GpuFontText
         public Color SelectionColor;
         public bool HasGradient;
         public float Opacity;
+        public bool SkipEffects;
+        public bool EffectsOnly;
 
         public static Options Default => new() { SelectionStart = -1, SelectionEnd = -1, Opacity = 1 };
     }
@@ -147,12 +149,12 @@ internal static class GpuFontText
 
                     var style = run.Style;
 
-                    if (style.BackgroundColor.Alpha > 0 && run.RunKind == FontRunKind.Normal)
+                    if (!Options.EffectsOnly && style.BackgroundColor.Alpha > 0 && run.RunKind == FontRunKind.Normal)
                     {
                         AddRect(Origin + new Vector2(run.XCoord, line.YCoord), Origin + new Vector2(run.XCoord + run.Width, line.YCoord + line.Height), ToColor(style.BackgroundColor));
                     }
 
-                    if (run.RunKind == FontRunKind.Tabs || run.Glyphs.Length == 0 || style.TextEffects is null)
+                    if (Options.SkipEffects || run.RunKind == FontRunKind.Tabs || run.Glyphs.Length == 0 || style.TextEffects is null)
                     {
                         continue;
                     }
@@ -162,6 +164,11 @@ internal static class GpuFontText
                         AddEffectPass(run, line, Origin + new Vector2(effect.Offset.X, effect.Offset.Y), effect.Width * 0.5f, effect.BlurSize, ToColor(effect.Color));
                     }
                 }
+            }
+
+            if (Options.EffectsOnly)
+            {
+                return;
             }
 
             bool selection = Options.SelectionStart >= 0 && Options.SelectionEnd >= 0 && Options.SelectionStart != Options.SelectionEnd;

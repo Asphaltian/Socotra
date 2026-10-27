@@ -3,9 +3,9 @@ namespace Socotra;
 public partial class CanvasPanel
 {
     /// <summary>
-    /// A panel on a canvas the user can drag with the left mouse button. By default it sits at <see cref="Position"/> in
-    /// canvas coordinates and keeps its CSS size as the canvas zooms. Override <see cref="OnDragMove"/> to change your own
-    /// data instead.
+    /// <c>Handle</c> is a panel on a canvas that the user can drag with the left mouse button. By default it sits at
+    /// <see cref="Position"/> in canvas coordinates and keeps its CSS size as the canvas zooms. If you'd rather change
+    /// your own data when it's dragged, override <see cref="OnDragMove"/>.
     /// </summary>
     /// <example>
     /// <code>
@@ -52,13 +52,13 @@ public partial class CanvasPanel
         /// <summary>Places the handle at <see cref="Position"/> for you. Turn it off for a handle laid out inside another panel, like the title of a card.</summary>
         public bool Positioned { get; set; } = true;
 
-        /// <summary>Whether the user can drag the handle. On by default.</summary>
+        /// <summary>Set this to <c>false</c> if the user shouldn't be able to drag the handle.</summary>
         public bool DragEnabled { get; set; } = true;
 
         /// <summary>Which ways the handle can move.</summary>
         public Axis MovementAxis { get; set; }
 
-        /// <summary>Holding Shift when a drag starts locks it to whichever way the mouse moves first. On by default.</summary>
+        /// <summary>Lets the user hold Shift when a drag starts to lock it to whichever way the mouse moves first. It's on by default.</summary>
         public bool LockAxisWithShift { get; set; } = true;
 
         /// <summary>Snaps the position to multiples of these, in canvas units. 0 on an axis doesn't snap it.</summary>
@@ -67,7 +67,7 @@ public partial class CanvasPanel
         /// <summary>A rectangle in canvas coordinates the handle can't be dragged out of, or null for no limit.</summary>
         public Rect? MovementBounds { get; set; }
 
-        /// <summary>Whether the handle is being dragged right now.</summary>
+        /// <summary>Returns <c>true</c> while the handle is being dragged.</summary>
         public bool IsDragging { get; private set; }
 
         /// <summary>Where the handle was when the drag started.</summary>

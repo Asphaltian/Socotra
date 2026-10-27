@@ -116,7 +116,7 @@ internal struct BoxInstance
         };
     }
 
-    public static BoxInstance From(in Painter.BoxDescriptor desc)
+    public static void From(in Painter.BoxDescriptor desc, out BoxInstance instance)
     {
         var hasImage = desc.HasImage;
         var hasBorderImage = desc.HasBorderImage;
@@ -127,40 +127,38 @@ internal struct BoxInstance
             ? desc.BackgroundRect.Z > 0 || desc.BackgroundRect.W > 0 ? desc.BackgroundRect : new Vector4(0, 0, desc.Rect.Width, desc.Rect.Height)
             : Vector4.Zero;
         var radii = desc.Radii.Clamped(desc.Rect.Width, desc.Rect.Height);
-        return new BoxInstance
+        instance = default;
+        instance.Rect = new Vector4(desc.Rect.Left, desc.Rect.Top, desc.Rect.Width, desc.Rect.Height);
+        instance.Color = desc.Color;
+        instance.BorderRadius = radii.Horizontal;
+        instance.BorderRadiusV = radii.Vertical;
+        instance.BorderSize = border.Size;
+        instance.BorderColorL = border.ColorL;
+        instance.BorderColorT = border.ColorT;
+        instance.BorderColorR = border.ColorR;
+        instance.BorderColorB = border.ColorB;
+        instance.SamplerIndex = hasImage ? BackgroundSampler(desc.BackgroundRepeat, desc.FilterMode) : 0;
+        instance.BackgroundRepeat = (int)desc.BackgroundRepeat;
+        instance.BackgroundAngle = desc.BackgroundAngle;
+        instance.BackgroundRect = backgroundRect;
+        instance.BackgroundTint = hasBackground ? desc.BackgroundTint : Color.Transparent;
+        instance.BorderImageSamplerIndex = hasBorderImage ? ClampSampler(desc.FilterMode) : 0;
+        instance.BorderImageMode = hasBorderImage ? image.Repeat == BorderImageRepeat.Stretch ? 2 : 1 : 0;
+        instance.BorderImageFill = hasBorderImage && image.Fill == Socotra.BorderImageFill.Filled ? 1 : 0;
+        instance.BorderImageSlice = image.Slices;
+        instance.BorderImageTint = hasBorderImage ? image.Tint : default;
+        instance.BorderStyle = (int)border.Style;
+        instance.InverseScissorIndex = -1;
+        instance.BackgroundClip = (int)desc.BackgroundClip;
+        instance.BackgroundBlend = desc.BackgroundBlendMode switch
         {
-            Rect = new Vector4(desc.Rect.Left, desc.Rect.Top, desc.Rect.Width, desc.Rect.Height),
-            Color = desc.Color,
-            BorderRadius = radii.Horizontal,
-            BorderRadiusV = radii.Vertical,
-            BorderSize = border.Size,
-            BorderColorL = border.ColorL,
-            BorderColorT = border.ColorT,
-            BorderColorR = border.ColorR,
-            BorderColorB = border.ColorB,
-            SamplerIndex = hasImage ? BackgroundSampler(desc.BackgroundRepeat, desc.FilterMode) : 0,
-            BackgroundRepeat = (int)desc.BackgroundRepeat,
-            BackgroundAngle = desc.BackgroundAngle,
-            BackgroundRect = backgroundRect,
-            BackgroundTint = hasBackground ? desc.BackgroundTint : Color.Transparent,
-            BorderImageSamplerIndex = hasBorderImage ? ClampSampler(desc.FilterMode) : 0,
-            BorderImageMode = hasBorderImage ? image.Repeat == BorderImageRepeat.Stretch ? 2 : 1 : 0,
-            BorderImageFill = hasBorderImage && image.Fill == Socotra.BorderImageFill.Filled ? 1 : 0,
-            BorderImageSlice = image.Slices,
-            BorderImageTint = hasBorderImage ? image.Tint : default,
-            BorderStyle = (int)border.Style,
-            InverseScissorIndex = -1,
-            BackgroundClip = (int)desc.BackgroundClip,
-            BackgroundBlend = desc.BackgroundBlendMode switch
-            {
-                BlendMode.Multiply => 1,
-                BlendMode.Lighten => 2,
-                _ => 0,
-            },
-            BackgroundClipRect = desc.BackgroundClip == Socotra.BackgroundClip.Text ? desc.TextMaskRect : desc.BackgroundClipInset,
-            TextMaskSamplerIndex = desc.HasTextMask ? ClampSampler(FilterMode.Bilinear) : 0,
-            ShapeIndex = -1,
+            BlendMode.Multiply => 1,
+            BlendMode.Lighten => 2,
+            _ => 0,
         };
+        instance.BackgroundClipRect = desc.BackgroundClip == Socotra.BackgroundClip.Text ? desc.TextMaskRect : desc.BackgroundClipInset;
+        instance.TextMaskSamplerIndex = desc.HasTextMask ? ClampSampler(FilterMode.Bilinear) : 0;
+        instance.ShapeIndex = -1;
     }
 
     public void ApplyOpacity(float opacity)
@@ -308,6 +306,8 @@ internal static class ShapeKind
     public const int Capsule = 5;
     public const int Crescent = 6;
     public const int Heart = 7;
+    public const int SimpleLine = 8;
+    public const int PolygonStroke = 9;
     public const int FirstAnalytic = Capsule;
 }
 
@@ -325,6 +325,14 @@ internal record struct ShapeInstance
     public int PathNodeOffset;
     public int PathNodeCount;
     public int Kind;
+
+    public static ShapeInstance CreatePolygonStroke(int polygonIndex, Vector2 originOffset, float effectiveWidth, Stroke.StrokeAlignment alignment) => new()
+    {
+        Kind = ShapeKind.PolygonStroke,
+        PolygonCount = polygonIndex,
+        Circle = new Vector4(originOffset.X, originOffset.Y, effectiveWidth,
+            alignment == Stroke.StrokeAlignment.Center ? 0 : alignment == Stroke.StrokeAlignment.Inside ? 1 : -1),
+    };
 }
 
 [StructLayout(LayoutKind.Sequential)]

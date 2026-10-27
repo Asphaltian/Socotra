@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A panel that floats next to the panel that opened it, above everything else, and closes when the user clicks
-/// somewhere else. Give it options with <see cref="AddOption(string?, Action?)"/> or fill it with panels of your own.
+/// <c>Popup</c> is a panel that floats next to the panel that opened it, above everything else, and closes when the user
+/// clicks somewhere else. You can give it options with <see cref="AddOption(string?, Action?)"/>, or fill it with your
+/// own panels.
 /// </summary>
 /// <example>
 /// <code>
@@ -104,6 +105,8 @@ public partial class Popup : BasePopup
     /// <summary>The panel that opened this popup. Keys the popup doesn't use go to it.</summary>
     [Parameter]
     public Panel? PopupSource { get; set; }
+
+    internal override Panel? FocusOwner => PopupSource is { IsDeleted: false } source ? source : Parent;
 
     /// <summary>The option picked with <see cref="MoveSelection"/>, or null.</summary>
     public Panel? SelectedChild { get; set; }

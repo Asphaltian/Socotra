@@ -2,8 +2,9 @@ namespace Socotra.Tests;
 
 public class DockHostTests
 {
-    private readonly RootPanel _root = new UnscaledRoot();
+    private readonly FixedScaleRoot _root = new();
     private readonly DockHost _host;
+    private Vector2 _size = new(800, 600);
 
     public DockHostTests()
     {
@@ -16,7 +17,7 @@ public class DockHostTests
     {
         for (int i = 0; i < 3; i++)
         {
-            _root.Update(new Rect(0, 0, 800, 600), 0.016f);
+            _root.Update(new Rect(0, 0, _size.X, _size.Y), 0.016f);
         }
     }
 
@@ -52,7 +53,6 @@ public class DockHostTests
         MoveTo(TitleCenter(tab));
         Assert.Same(tab, _root.Hovered);
         MouseButton(true);
-        Assert.Same(tab, _root.Focused);
         MoveTo(destination);
         Assert.True(tab.HasClass("dragging"));
         Assert.True(Single("dock-targets").IsVisible);
@@ -603,6 +603,7 @@ public class DockHostTests
         BeginDrag(tab, new Vector2(_host.Box.Rect.Right - 5, _host.Box.Rect.Center.Y));
         MoveTo(Single("dock-root-guide-right").Box.Rect.Center);
         Assert.True(Single("dock-preview").IsVisible);
+        Assert.NotSame(tab, _root.Focused);
         var before = _host.State;
         if (leave)
         {
@@ -649,6 +650,174 @@ public class DockHostTests
 
     [Fact]
     public void MarkupMakesADockHost() => Assert.IsType<DockHost>(Panel.CreateElement("dockhost"));
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public void DraggingASplitterPassesThroughAFixedSizePanel(bool vertical, bool nestRight, bool lastDivider)
+    {
+        _size = new Vector2(1200, 1200);
+        var (main, fixedSize, chat) = (new Panel(), new Panel(), new Panel());
+        if (vertical)
+        {
+            main.Style.MinHeight = 200;
+            fixedSize.Style.MinHeight = fixedSize.Style.MaxHeight = 200;
+            chat.Style.MinHeight = 500;
+        }
+        else
+        {
+            main.Style.MinWidth = 200;
+            fixedSize.Style.MinWidth = fixedSize.Style.MaxWidth = 200;
+            chat.Style.MinWidth = 500;
+        }
+
+        _host.Register("main", "Main", main);
+        _host.Register("fixed", "Fixed", fixedSize);
+        _host.Register("chat", "Chat", chat);
+        _host.Dock("main");
+        var position = vertical ? DockPosition.Bottom : DockPosition.Right;
+        _host.Dock(nestRight ? "fixed" : "chat", "main", position);
+        _host.Dock(nestRight ? "chat" : "fixed", nestRight ? "fixed" : "main", position);
+        var dividers = _host.Descendants.Where(x => x.HasClass("dock-splitter")).ToArray();
+        foreach (var divider in dividers)
+        {
+            if (vertical)
+            {
+                divider.Style.Height = 16;
+            }
+            else
+            {
+                divider.Style.Width = 16;
+            }
+        }
+
+        Frame();
+        float Axis(Vector2 value) => vertical ? value.Y : value.X;
+        var along = vertical ? Vector2.UnitY : Vector2.UnitX;
+        var ordered = dividers.OrderBy(x => Axis(x.Box.Rect.Position)).ToArray();
+        var start = (lastDivider ? ordered[^1] : ordered[0]).Box.Rect.Center;
+        var (mainSize, chatSize, fixedArea) = (Axis(main.Parent!.Box.Rect.Size), Axis(chat.Parent!.Box.Rect.Size), Axis(fixedSize.Parent!.Box.Rect.Size));
+        var state = _host.State;
+
+        MoveTo(start);
+        MouseButton(true);
+        MoveTo(start - (along * 100));
+        Assert.Equal(mainSize - 100, Axis(main.Parent.Box.Rect.Size), 1f);
+        Assert.Equal(chatSize + 100, Axis(chat.Parent.Box.Rect.Size), 1f);
+        Assert.Equal(fixedArea, Axis(fixedSize.Parent.Box.Rect.Size), 1f);
+
+        MoveTo(start + (along * 150));
+        Assert.True(Axis(chat.Parent.Box.Rect.Size) >= 499);
+        Assert.Equal(fixedArea, Axis(fixedSize.Parent.Box.Rect.Size), 1f);
+
+        Key("escape");
+        Assert.Equal(state, _host.State);
+        Assert.Equal(mainSize, Axis(main.Parent.Box.Rect.Size), 1f);
+        MouseButton(false);
+    }
+
+    [Theory]
+    [InlineData(1.0f)]
+    [InlineData(0.8f)]
+    [InlineData(1.5f)]
+    public void PixelWidthLimitsHoldAsTheWorkspaceResizes(float scale)
+    {
+        _root.FixedScale = scale;
+        var (main, sidebar) = (new Panel(), new Panel());
+        main.Style.MinWidth = 500;
+        sidebar.Style.MinWidth = sidebar.Style.MaxWidth = 200;
+        _host.Register("main", "Main", main);
+        _host.Register("sidebar", "Sidebar", sidebar);
+        _host.Dock("main");
+        _host.Dock("sidebar", "main", DockPosition.Right);
+
+        foreach (var width in new[] { 800, 1200, 720 })
+        {
+            _size = new Vector2(width, 600) * scale;
+            Frame();
+            Assert.Equal(200, sidebar.Parent!.Box.Rect.Width / scale, 1f);
+            Assert.True(main.Parent!.Box.Rect.Width / scale >= 499);
+        }
+    }
+
+    [Fact]
+    public void NestedLimitsMakeRoomForStyledSplitters()
+    {
+        _size = new Vector2(1200, 600);
+        var (main, sidebar, chat) = (new Panel(), new Panel(), new Panel());
+        sidebar.Style.MinWidth = sidebar.Style.MaxWidth = 200;
+        chat.Style.MinWidth = 500;
+        _host.Register("main", "Main", main);
+        _host.Register("sidebar", "Sidebar", sidebar);
+        _host.Register("chat", "Chat", chat);
+        _host.Dock("main");
+        _host.Dock("chat", position: DockPosition.Right, fraction: 0.1f);
+        _host.Dock("sidebar", "main", DockPosition.Right);
+        foreach (var divider in _host.Descendants.Where(x => x.HasClass("dock-splitter")))
+        {
+            divider.Style.Width = 16;
+        }
+
+        Frame();
+        Frame();
+        Assert.Equal(200, sidebar.Parent!.Box.Rect.Width, 1f);
+        Assert.Equal(500, chat.Parent!.Box.Rect.Width, 1f);
+        Assert.Equal(468, main.Parent!.Box.Rect.Width, 1f);
+    }
+
+    [Fact]
+    public void ConflictingMinimumsShareTheSpace()
+    {
+        foreach (var id in new[] { "a", "b" })
+        {
+            var panel = new Panel();
+            panel.Style.MinWidth = 500;
+            _host.Register(id, id, panel);
+        }
+
+        _host.Dock("a");
+        _host.Dock("b", "a", DockPosition.Right);
+        Frame();
+        foreach (var branch in _host.Descendants.Where(x => x.HasClass("dock-branch")))
+        {
+            Assert.Equal(397.5f, branch.Box.Rect.Width, 1f);
+        }
+    }
+
+    [Fact]
+    public void SwitchingTabsDoesNotMoveTheSplitter()
+    {
+        var (wide, narrow) = (new Panel(), new Panel());
+        wide.Style.MinWidth = 500;
+        narrow.Style.MinWidth = narrow.Style.MaxWidth = 200;
+        _host.Register("wide", "Wide", wide);
+        _host.Register("narrow", "Narrow", narrow);
+        _host.Register("other", "Other", new Panel());
+        _host.Dock("wide");
+        _host.Dock("narrow", "wide");
+        _host.Dock("other", "wide", DockPosition.Right, 0.8f);
+        _host.Activate("wide");
+        Frame();
+        var width = wide.Parent!.Box.Rect.Width;
+        Assert.True(width >= 499);
+
+        _host.Activate("narrow");
+        Frame();
+        Assert.Equal(width, narrow.Parent!.Box.Rect.Width, 1f);
+    }
+
+    private sealed class FixedScaleRoot : RootPanel
+    {
+        public float FixedScale { get; set; } = 1;
+
+        protected override float GetScale(Rect bounds) => FixedScale;
+    }
 
     private sealed class RecordingPanel : Panel
     {

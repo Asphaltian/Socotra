@@ -286,6 +286,23 @@ public class TextEntryTests
     }
 
     [Fact]
+    public void MultilineEntriesWrapAtTheirEdge()
+    {
+        var root = Root(Styles);
+        var entry = root.AddChild<TestEntry>();
+        entry.Multiline = true;
+        entry.Style.Width = 120;
+        entry.Text = "A review long enough that it can't fit on one line of a narrow entry";
+        Update(root);
+        Update(root);
+
+        var label = entry.ContentLabel;
+        Assert.Equal(WhiteSpace.PreWrap, label.Style.WhiteSpace);
+        Assert.True(label.Box.Rect.Height > 20 * 2.5f, $"Expected several lines, got a label {label.Box.Rect.Height} tall");
+        Assert.True(label.Box.Rect.Width <= entry.Box.Rect.Width + 1, $"Label {label.Box.Rect.Width} wide ran past its {entry.Box.Rect.Width} wide entry");
+    }
+
+    [Fact]
     public void MultilineEntriesTakeEnterAndMoveBetweenLines()
     {
         var (root, entry) = Focused();

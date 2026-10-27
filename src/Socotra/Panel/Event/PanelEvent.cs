@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// An event traveling up the panel tree, like a click. Send one with <see cref="Panel.CreateEvent(PanelEvent)"/>
-/// and listen for it with <see cref="Panel.AddEventListener(string, Action{PanelEvent})"/>.
+/// <c>PanelEvent</c> is an event that travels up the panel tree, like a click. You can send one with
+/// <see cref="Panel.CreateEvent(PanelEvent)"/> and listen for it with
+/// <see cref="Panel.AddEventListener(string, Action{PanelEvent})"/>.
 /// </summary>
 public class PanelEvent
 {
@@ -36,7 +37,7 @@ public class PanelEvent
 
     internal bool Propagate { get; set; } = true;
 
-    /// <summary>Whether the event is called <paramref name="name"/>, ignoring case.</summary>
+    /// <summary>Returns <c>true</c> if the event is called <paramref name="name"/>, ignoring case.</summary>
     public bool Is(string name) => string.Equals(name, Name, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Stops the event reaching any more listeners or ancestors.</summary>

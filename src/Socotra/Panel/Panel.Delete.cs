@@ -5,10 +5,10 @@ public partial class Panel
     private HashSet<Panel>? _renderTreeDeletion;
     private bool _renderTreeDeletePending;
 
-    /// <summary>Whether the panel is on its way out, playing its <c>:outro</c> transitions.</summary>
+    /// <summary>Returns <c>true</c> while the panel is on its way out and playing its <c>:outro</c> transitions.</summary>
     public bool IsDeleting { get; private set; }
 
-    /// <summary>Whether the panel has been deleted.</summary>
+    /// <summary>Returns <c>true</c> once the panel has been deleted.</summary>
     public bool IsDeleted { get; private set; }
 
     /// <summary>

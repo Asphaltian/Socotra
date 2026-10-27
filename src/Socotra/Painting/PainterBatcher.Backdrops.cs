@@ -43,7 +43,8 @@ internal sealed partial class PainterBatcher
     {
         var radii = data.Radii.Clamped(data.Rect.Width, data.Rect.Height);
         var tint = data.Filter.Tint.WithAlphaMultiplied(data.Opacity);
-        list.Commands.Add(new BackdropCommand(placement, data.Rect, radii, data.Filter, tint, reuseGrab));
+        var shape = data.Shape.Kind is ShapeKind.Polygon or ShapeKind.Circle ? GetOrAddShape(data.Shape) : -1;
+        list.Commands.Add(new BackdropCommand(placement, data.Rect, radii, data.Filter, tint, reuseGrab, shape));
     }
 
     private void InvalidateBackdrop() => _backdropWrites.Clear();

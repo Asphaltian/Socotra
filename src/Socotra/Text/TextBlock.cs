@@ -174,10 +174,32 @@ internal sealed partial class TextBlock
         options.Opacity = opacity;
 
         _instances.Clear();
-        var origin = GetAlignedRect(currentStyle, textRect).Floor().Position - new Vector2(_block.MeasuredPadding.Left, 0);
-        GpuFontText.Build(_block, origin, options, _instances);
+        GpuFontText.Build(_block, DrawOrigin(currentStyle, textRect), options, _instances);
         painter.Glyphs(_instances, blendMode, _hasGradient ? _gradient : default);
     }
+
+    internal void DrawEffects(Painter painter, BlendMode blendMode, Styles? currentStyle, Rect textRect, float opacity)
+    {
+        if (BlockSize == Vector2.Zero || Text.Length == 0 || opacity <= 0)
+        {
+            return;
+        }
+
+        var options = GetOptions();
+        options.Opacity = opacity;
+        options.HasGradient = false;
+        options.EffectsOnly = true;
+
+        _instances.Clear();
+        GpuFontText.Build(_block, DrawOrigin(currentStyle, textRect), options, _instances);
+        if (_instances.Count > 0)
+        {
+            painter.Glyphs(_instances, blendMode, default);
+        }
+    }
+
+    private Vector2 DrawOrigin(Styles? currentStyle, Rect textRect) =>
+        GetAlignedRect(currentStyle, textRect).Floor().Position - new Vector2(_block.MeasuredPadding.Left, 0);
 
     internal bool GetMask(Styles? currentStyle, Rect textRect, [NotNullWhen(true)] out Texture? texture, out Rect rect)
     {
@@ -235,6 +257,7 @@ internal sealed partial class TextBlock
 
         var options = GetOptions();
         options.HasGradient = false;
+        options.SkipEffects = true;
 
         var origin = new Vector2(_textureMargin.Left - _block.MeasuredPadding.Left, _textureMargin.Top);
         return GpuFontText.Render(_block, origin, width, height, options, _texture);

@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>One entry of <c>transition</c>: which property animates, how long it takes and how it eases.</summary>
+/// <summary>One entry of <c>transition</c>. It says which property animates, how long it takes and how it eases.</summary>
 public struct TransitionDesc
 {
     /// <summary>The CSS property to animate, or <c>all</c>.</summary>

@@ -9,19 +9,19 @@
 
 namespace Socotra.Html;
 
-/// <summary>An element or piece of text in a rich text label's markup.</summary>
+/// <summary>An element or a piece of text in the markup of a rich text label.</summary>
 public interface INode : IStyleTarget
 {
-    /// <summary>Whether it's an element, like <c>&lt;b&gt;</c>.</summary>
+    /// <summary>Returns <c>true</c> if it's an element, like <c>&lt;b&gt;</c>.</summary>
     bool IsElement { get; }
 
-    /// <summary>Whether it's text.</summary>
+    /// <summary>Returns <c>true</c> if it's text.</summary>
     bool IsText { get; }
 
-    /// <summary>Whether it's a comment.</summary>
+    /// <summary>Returns <c>true</c> if it's a comment.</summary>
     bool IsComment { get; }
 
-    /// <summary>Whether it's the document holding everything else.</summary>
+    /// <summary>Returns <c>true</c> if it's the document that holds everything else.</summary>
     bool IsDocument { get; }
 
     /// <summary>The node's markup, including its own tag.</summary>

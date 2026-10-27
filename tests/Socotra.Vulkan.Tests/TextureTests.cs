@@ -23,6 +23,32 @@ public class TextureTests(GpuHost gpu)
     }
 
     [GpuFact]
+    public void PointFilteringKeepsHardPixelEdges()
+    {
+        var texture = Quadrants();
+        var rejectsUnknownFilters = false;
+        var image = gpu.Render(40, 40, painter =>
+        {
+            painter.Clear(Color.Black);
+            painter.Texture(texture, new Rect(0, 0, 40, 40), filter: FilterMode.Point);
+            try
+            {
+                painter.Texture(texture, new Rect(0, 0, 40, 40), filter: (FilterMode)99);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                rejectsUnknownFilters = true;
+            }
+        });
+
+        image.Expect(19, 3, Rgba.Red);
+        image.Expect(20, 3, Rgba.Green);
+        image.Expect(19, 36, Rgba.Blue);
+        image.Expect(20, 36, Rgba.White);
+        Assert.True(rejectsUnknownFilters);
+    }
+
+    [GpuFact]
     public void TintMultipliesTheTexture()
     {
         var texture = Texture.FromPixels(1, 1, [255, 255, 255, 255]);

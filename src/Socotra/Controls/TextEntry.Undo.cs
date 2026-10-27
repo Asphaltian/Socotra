@@ -18,10 +18,10 @@ public partial class TextEntry
         Deleting,
     }
 
-    /// <summary>Whether there's an edit <see cref="Undo"/> can take back.</summary>
+    /// <summary>Returns <c>true</c> if there's an edit that <see cref="Undo"/> can take back.</summary>
     public bool CanUndo => _undoStack.Count > 0;
 
-    /// <summary>Whether there's an undone edit <see cref="Redo"/> can put back.</summary>
+    /// <summary>Returns <c>true</c> if there's an undone edit that <see cref="Redo"/> can put back.</summary>
     public bool CanRedo => _redoStack.Count > 0;
 
     /// <summary>Takes back the last edit, putting back the text, caret and selection from before it, like Ctrl+Z. Letters typed in one go come back out together.</summary>

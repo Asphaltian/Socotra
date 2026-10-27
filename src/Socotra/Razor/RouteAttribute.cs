@@ -5,9 +5,9 @@ using Socotra;
 namespace Microsoft.AspNetCore.Components;
 
 /// <summary>
-/// The url a panel shows up at in a <see cref="NavigationHost"/>. In Razor, write <c>@page "/settings/{Section}"</c>:
-/// a part in braces matches anything and sets the panel's property of that name. End with <c>*</c> for a page
-/// that has its own navigation host inside, so it matches every url under it.
+/// The url that a panel shows up at in a <see cref="NavigationHost"/>. In Razor you write it as
+/// <c>@page "/settings/{Section}"</c>, where a part in braces matches anything and sets the panel's property with that
+/// name. If the page has its own navigation host inside, end the url with <c>*</c> so it matches every url under it.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class RouteAttribute : Attribute
@@ -40,7 +40,7 @@ public class RouteAttribute : Attribute
         return found.Type is null ? null : found;
     }
 
-    /// <summary>Whether this route matches <paramref name="url"/>. Anything after a <c>?</c> is ignored.</summary>
+    /// <summary>Returns <c>true</c> if this route matches <paramref name="url"/>. Anything after a <c>?</c> is ignored.</summary>
     public bool IsUrl(string? url)
     {
         if (string.IsNullOrEmpty(url))

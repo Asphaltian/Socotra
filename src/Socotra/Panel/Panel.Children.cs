@@ -66,7 +66,7 @@ public partial class Panel
 
     IReadOnlyList<IStyleTarget> IStyleTarget.Children => Children;
 
-    /// <summary>Whether this panel has any children.</summary>
+    /// <summary>Returns <c>true</c> if this panel has any children.</summary>
     public bool HasChildren => _children is { Count: > 0 };
 
     /// <summary>How many children this panel has.</summary>
@@ -121,7 +121,7 @@ public partial class Panel
     /// <summary>The top-most ancestor, the one with no parent.</summary>
     public virtual Panel FindPopupPanel() => Parent?.FindPopupPanel() ?? this;
 
-    /// <summary>Whether <paramref name="panel"/> is this panel or one of its ancestors.</summary>
+    /// <summary>Returns <c>true</c> if <paramref name="panel"/> is this panel or one of its ancestors.</summary>
     public bool IsAncestor(Panel? panel)
     {
         for (Panel? p = this; p is not null; p = p.Parent)
@@ -264,7 +264,10 @@ public partial class Panel
     {
     }
 
-    /// <summary>Whether the panel counts as empty for <c>:empty</c>. By default, when it has no children. Call <see cref="EmptyStateChanged"/> when an override's answer changes.</summary>
+    /// <summary>
+    /// Return <c>true</c> if the panel counts as empty for <c>:empty</c>, which by default is when it has no children. If
+    /// you override this, don't forget to call <see cref="EmptyStateChanged"/> whenever your answer changes.
+    /// </summary>
     protected virtual bool IsPanelEmpty() => ChildrenCount == 0;
 
     /// <summary>Updates <c>:empty</c>. Call it when an override of <see cref="IsPanelEmpty"/> would answer differently.</summary>

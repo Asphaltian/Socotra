@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Socotra;
 
-/// <summary>The stylesheets on a panel, which you get from <see cref="Panel.StyleSheet"/>. They style the panel and everything inside it.</summary>
+/// <summary>The stylesheets on a panel, which you get from <see cref="Panel.StyleSheet"/>. They style the panel and everything inside of it.</summary>
 public sealed class StyleSheetCollection
 {
     private readonly Panel _owner;

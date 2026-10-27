@@ -4,10 +4,10 @@ using System.Globalization;
 namespace Socotra;
 
 /// <summary>
-/// A full color picker: a square with hue and alpha strips to pick the color, a brightness slider for colors brighter
-/// than white, number fields for hex, RGB or HSV, a palette of recent and kept colors, and a box that takes a color
-/// written any way a stylesheet would. The menu in the corner lets the user swap the square for a hue ring, a hue disc
-/// or sliders, and right-clicking a kept color replaces or removes it.
+/// <c>ColorPickerControl</c> is a full color picker. It has a square with hue and alpha strips to pick the color, a
+/// brightness slider for colors brighter than white, number fields for hex, RGB or HSV, a palette of recent and saved
+/// colors, and a box that takes a color written any way a stylesheet would. From the menu in the corner, the user can
+/// swap the square for a hue ring, a hue disc or sliders, and right-clicking a saved color replaces or removes it.
 /// </summary>
 /// <example>
 /// <code>
@@ -373,7 +373,7 @@ public partial class ColorPickerControl : Panel
         }
     }
 
-    /// <summary>Whether the user can pick how transparent the color is. On by default.</summary>
+    /// <summary>Set this to <c>false</c> if the user shouldn't be able to pick how transparent the color is.</summary>
     [Parameter]
     public bool HasAlpha
     {
@@ -387,7 +387,7 @@ public partial class ColorPickerControl : Panel
         }
     }
 
-    /// <summary>Whether the user can pick colors brighter than white, for lights and glows. On by default.</summary>
+    /// <summary>Lets the user pick colors brighter than white, which is handy for lights and glows. Set this to <c>false</c> if you don't need them.</summary>
     [Parameter]
     public bool IsHdr
     {

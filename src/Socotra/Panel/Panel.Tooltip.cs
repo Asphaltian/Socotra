@@ -26,7 +26,11 @@ public partial class Panel
     [Parameter]
     public Action<Panel>? OnTooltip { get; set; }
 
-    /// <summary>Whether this panel shows a tooltip: by default, when <see cref="Tooltip"/> or <see cref="OnTooltip"/> is set. Override it to return true when you override <see cref="CreateTooltipPanel"/>.</summary>
+    /// <summary>
+    /// Return <c>true</c> if this panel shows a tooltip, which by default is when <see cref="Tooltip"/> or
+    /// <see cref="OnTooltip"/> is set. If you override <see cref="CreateTooltipPanel"/>, don't forget to override this
+    /// to return <c>true</c> as well.
+    /// </summary>
     public virtual bool HasTooltip => !string.IsNullOrWhiteSpace(Tooltip) || OnTooltip is not null;
 
     internal Panel? BuildTooltip() => CreateTooltipPanel();
@@ -40,8 +44,8 @@ public partial class Panel
     }
 
     /// <summary>
-    /// Makes the tooltip panel. Override it to make a tooltip of your own; if you don't set <see cref="Tooltip"/>, also
-    /// override <see cref="HasTooltip"/> to return true. Return null to show nothing.
+    /// Creates the tooltip panel. Override it if you want your own tooltip, and if you don't set <see cref="Tooltip"/>,
+    /// don't forget to override <see cref="HasTooltip"/> to return <c>true</c> too. Return null to show nothing.
     /// </summary>
     protected virtual Panel? CreateTooltipPanel()
     {

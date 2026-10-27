@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>How drawing combines with what's already there.</summary>
+/// <summary>How what you draw combines with what's already there.</summary>
 public enum BlendMode
 {
     /// <summary>Drawing covers what's behind it, as far as it's opaque.</summary>

@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>A row in a <see cref="Form"/>, usually a label and a control. It has the <c>field</c> class.</summary>
+/// <summary><c>Field</c> is one row in a <see cref="Form"/>, which is usually a label and a control. It has the <c>field</c> class.</summary>
 public class Field : Panel
 {
     /// <summary>Makes an empty field.</summary>

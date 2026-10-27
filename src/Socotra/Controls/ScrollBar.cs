@@ -1,9 +1,10 @@
 namespace Socotra;
 
 /// <summary>
-/// The scrollbar a scrolling panel shows along one axis. Panels make their own, so you style them rather than create them:
-/// set <c>scrollbar-width</c>, <c>scrollbar-color</c> and <c>scrollbar-gutter</c> on the scrolling panel, or target
-/// <c>scrollbar</c> and <c>scrollbar &gt; .thumb</c> in your stylesheet.
+/// <c>ScrollBar</c> is the scrollbar that a scrolling panel shows along one axis. Panels create their own, so you don't
+/// need to create these yourself, just style them. Set <c>scrollbar-width</c>, <c>scrollbar-color</c> and
+/// <c>scrollbar-gutter</c> on the scrolling panel, or target <c>scrollbar</c> and <c>scrollbar &gt; .thumb</c> in your
+/// stylesheet.
 /// </summary>
 /// <example>
 /// <code>
@@ -75,7 +76,7 @@ public sealed class ScrollBar : Panel
         AddChild(_thumb);
     }
 
-    /// <summary>Whether it scrolls up and down rather than sideways.</summary>
+    /// <summary>Returns <c>true</c> if it scrolls up and down instead of sideways.</summary>
     public bool IsVertical => _vertical;
 
     /// <inheritdoc/>

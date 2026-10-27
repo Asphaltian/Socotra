@@ -7,10 +7,10 @@ public partial class Styles
     private Styles? _animationStyle;
     private bool _animationComplete;
 
-    /// <summary>Whether an animation is set with <see cref="AnimationName"/>.</summary>
+    /// <summary>Returns <c>true</c> if an animation is set with <see cref="AnimationName"/>.</summary>
     public bool HasAnimation => !string.IsNullOrWhiteSpace(_animationName) && _animationName != "none";
 
-    /// <summary>Whether an animation is set and hasn't finished yet. An animation that repeats forever never finishes.</summary>
+    /// <summary>Returns <c>true</c> if an animation is set and hasn't finished yet. Keep in mind that an animation that repeats forever never finishes.</summary>
     public bool IsAnimationActive => HasAnimation && !_animationComplete;
 
     /// <summary>Stops the animation. If <see cref="AnimationName"/> is still set, it plays again from the beginning.</summary>

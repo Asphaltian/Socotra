@@ -1,6 +1,6 @@
 namespace Socotra;
 
-/// <summary>Sent as <c>ondragselect</c> to the panel a mouse drag started on, as the drag selects text.</summary>
+/// <summary>Sent as <c>ondragselect</c> to the panel that a mouse drag started on, while the drag selects text.</summary>
 public class SelectionEvent : PanelEvent
 {
     /// <summary>Makes a selection event on <paramref name="active"/>.</summary>

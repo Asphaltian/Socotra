@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace Socotra;
 
 /// <summary>
-/// A button. It takes focus, so it can be reached with Tab and the arrow keys and clicked with Enter or Space.
-/// Give it <see cref="Text"/> and <see cref="Help"/> to show, an <see cref="Href"/> to navigate to, or markup of its own.
+/// <c>Button</c> is a button that the user can click. It can take focus, so the user can also reach it with Tab and the
+/// arrow keys and press it with Enter or Space. Give it some <see cref="Text"/> and <see cref="Help"/> to show, an
+/// <see cref="Href"/> to navigate to, or your own markup.
 /// </summary>
 [StyleSheet.Inline("button", Styles)]
 public class Button : Panel, INavigationEvent
@@ -57,6 +58,7 @@ public class Button : Panel, INavigationEvent
     {
         AddClass("button");
         AcceptsFocus = true;
+        FocusOnClick = false;
 
         IconPanel = AddChild(new IconPanel(null, "icon"));
         IconPanel.Style.Display = DisplayMode.None;
@@ -182,8 +184,9 @@ public class Button : Panel, INavigationEvent
     }
 
     /// <summary>
-    /// The name of an icon shown at the start of the button, like <c>settings</c>. It needs an icon font; see
-    /// <see cref="Socotra.IconPanel"/>. <see cref="IconTexture"/> shows instead while it's set.
+    /// The name of an icon that's shown at the start of the button, like <c>settings</c>. Keep in mind that it needs an
+    /// icon font, so take a look at <see cref="Socotra.IconPanel"/>. While <see cref="IconTexture"/> is set, that shows
+    /// instead.
     /// </summary>
     [Parameter]
     public string? Icon

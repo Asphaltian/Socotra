@@ -2,9 +2,9 @@ namespace Socotra;
 
 internal sealed partial class PainterBatcher
 {
-    public BoxInstance Resolve(in Painter.BoxDescriptor desc, Matrix4x4 localTransform, int clipIndex)
+    public void Resolve(in Painter.BoxDescriptor desc, in Matrix4x4 localTransform, int clipIndex, out BoxInstance instance)
     {
-        var instance = BoxInstance.From(desc);
+        BoxInstance.From(desc, out instance);
         var spatial = Destination.ResolveSpatial(this, localTransform);
         if (desc.HasTextMask)
         {
@@ -25,25 +25,22 @@ internal sealed partial class PainterBatcher
             instance.BorderImageIndex = list.TextureIndex(desc.BorderImage.Texture!);
         }
 
-        instance.ShapeIndex = desc.PathData is null ? GetOrAddShape(desc.BorderShapeData) : GetOrAddPath(desc.PathData);
+        instance.ShapeIndex = desc.ShapeIndex ?? (desc.PathData is null ? GetOrAddShape(desc.BorderShapeData) : GetOrAddPath(desc.PathData));
         ResolveSpatial(ref instance, clipIndex, spatial);
-        return instance;
     }
 
-    public BoxInstance Resolve(in Painter.ShadowDescriptor desc, Matrix4x4 localTransform, int clipIndex)
+    public void Resolve(in Painter.ShadowDescriptor desc, in Matrix4x4 localTransform, int clipIndex, out BoxInstance instance)
     {
-        var instance = BoxInstance.FromShadow(desc);
+        instance = BoxInstance.FromShadow(desc);
         var spatial = Destination.ResolveSpatial(this, localTransform);
         ResolveSpatial(ref instance, clipIndex, spatial);
         instance.InverseScissorIndex = GetOrAddScissor(Painter.Scissoring.Single(desc.Rect, desc.Radii, spatial.Transform.Inverted, invert: !desc.Inset));
-        return instance;
     }
 
-    public BoxInstance Resolve(in Painter.OutlineDescriptor desc, Matrix4x4 localTransform, int clipIndex)
+    public void Resolve(in Painter.OutlineDescriptor desc, in Matrix4x4 localTransform, int clipIndex, out BoxInstance instance)
     {
-        var instance = BoxInstance.FromOutline(desc);
+        instance = BoxInstance.FromOutline(desc);
         ResolveSpatial(ref instance, clipIndex, Destination.ResolveSpatial(this, localTransform));
-        return instance;
     }
 
     public static bool OverlapsScissor(Rect rect, Matrix4x4 transform, in Painter.Scissoring scissor)

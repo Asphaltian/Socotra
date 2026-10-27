@@ -4,7 +4,7 @@ namespace Socotra.Vulkan;
 
 internal sealed unsafe class FramePass : IDisposable
 {
-    public const int TableCount = 8;
+    public const int TableCount = 9;
 
     public const int BindingCount = TableCount + 4;
 
@@ -70,6 +70,7 @@ internal sealed unsafe class FramePass : IDisposable
         Write(5, batcher.Shapes.Span);
         Write(6, batcher.Paths.Span);
         Write(7, batcher.PathNodes.Span);
+        Write(8, batcher.PolygonPoints.Span);
         HostBuffer.Ensure(ref _tiles, (ulong)(rasterTiles.Length * sizeof(uint)), BufferUsageFlags.StorageBufferBit);
         _tiles.Write(rasterTiles, 0);
 

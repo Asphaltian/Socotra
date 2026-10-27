@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// A link: clicking it navigates the closest <see cref="NavigationHost"/> to <see cref="HRef"/>, and it has the
-/// <c>active</c> class while that url is showing. Use it in markup as <c>&lt;a href="/settings"&gt;</c>.
+/// <c>NavLinkPanel</c> is a link. Clicking it navigates the closest <see cref="NavigationHost"/> to <see cref="HRef"/>,
+/// and it has the <c>active</c> class while that url is showing. In markup you write it as
+/// <c>&lt;a href="/settings"&gt;</c>.
 /// </summary>
 public class NavLinkPanel : Panel
 {

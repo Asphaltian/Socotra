@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A scrolling list for lots of items, one per row. Every row is <see cref="ItemHeight"/> tall, and only the
-/// rows in view have cells.
+/// <c>VirtualList</c> is a scrolling list for lots of items, with one item per row. Every row is
+/// <see cref="ItemHeight"/> tall, and only the rows that are in view have cells.
 /// </summary>
 /// <example>
 /// <code>

@@ -21,7 +21,7 @@ public partial class Panel
     /// <summary>How many screen pixels one CSS pixel is, from the root panel's scale.</summary>
     public float ScaleToScreen { get; private set; } = 1;
 
-    /// <summary>How many CSS pixels one screen pixel is: one over <see cref="ScaleToScreen"/>.</summary>
+    /// <summary>How many CSS pixels one screen pixel is, which is one over <see cref="ScaleToScreen"/>.</summary>
     public float ScaleFromScreen => 1 / ScaleToScreen;
 
     /// <summary>
@@ -339,16 +339,16 @@ public partial class Panel
     }
 }
 
-/// <summary>Where a panel is on screen, in screen pixels. Read it in <see cref="Panel.OnLayout"/> or after an update.</summary>
+/// <summary><c>Box</c> is where a panel is on the screen, in screen pixels. Read it in <see cref="Panel.OnLayout"/>, or after an update.</summary>
 public sealed class Box
 {
-    /// <summary>The panel's edges: its border box, including padding and border but not margin.</summary>
+    /// <summary>The panel's edges. This is its border box, so it includes padding and border but not margin.</summary>
     public Rect Rect { get; internal set; }
 
     /// <summary>The panel including its margin.</summary>
     public Rect RectOuter { get; internal set; }
 
-    /// <summary>Where content goes: inside the border and padding.</summary>
+    /// <summary>Where the content goes, inside the border and padding.</summary>
     public Rect RectInner { get; internal set; }
 
     /// <summary>Inside the border. Children are clipped to this when <c>overflow</c> hides them.</summary>

@@ -2,22 +2,25 @@ namespace Socotra;
 
 public partial class Panel
 {
-    /// <summary>Whether this panel wants to be dragged when a mouse press on it or its children moves. By default, scrolling panels do, so they can be scrolled by dragging.</summary>
+    /// <summary>
+    /// Return <c>true</c> if this panel wants to be dragged when the mouse is pressed on it or its children and then moved.
+    /// By default scrolling panels do, so they can be scrolled by dragging.
+    /// </summary>
     public virtual bool WantsDrag => (ScrollSize != Vector2.Zero || BlocksScrollChaining) && WantsDragScrolling;
 
     /// <summary>Set to false to stop the panel scrolling when it's dragged.</summary>
     public bool CanDragScroll { get; set; } = true;
 
-    /// <summary>Whether the panel is being scrolled by dragging right now.</summary>
+    /// <summary>Returns <c>true</c> while the panel is being scrolled by dragging.</summary>
     public bool IsDragScrolling { get; private set; }
 
-    /// <summary>Whether the panel can scroll sideways.</summary>
+    /// <summary>Returns <c>true</c> if the panel can scroll sideways.</summary>
     public bool HasScrollX => ScrollSize.X > 0 && ComputedStyle?.OverflowX == OverflowMode.Scroll;
 
-    /// <summary>Whether the panel can scroll up and down.</summary>
+    /// <summary>Returns <c>true</c> if the panel can scroll up and down.</summary>
     public bool HasScrollY => ScrollSize.Y > 0 && ComputedStyle?.OverflowY == OverflowMode.Scroll;
 
-    /// <summary>Whether dragging the panel scrolls it: <see cref="CanDragScroll"/> is on and it has <c>overflow: scroll</c>.</summary>
+    /// <summary>Return <c>true</c> if dragging the panel scrolls it. By default that's when <see cref="CanDragScroll"/> is on and it has <c>overflow: scroll</c>.</summary>
     protected virtual bool WantsDragScrolling =>
         CanDragScroll && (ComputedStyle?.OverflowX == OverflowMode.Scroll || ComputedStyle?.OverflowY == OverflowMode.Scroll);
 
@@ -61,6 +64,15 @@ public partial class Panel
         e.StopPropagation();
         var delta = e.LocalGrabPosition - e.LocalPosition;
         ApplyDragScroll(new Vector2(IsScrollContainer(true) ? delta.X : 0, IsScrollContainer(false) ? delta.Y : 0));
+    }
+
+    /// <summary>
+    /// Called when the user presses Escape in the middle of dragging this panel. Nothing gets dropped, so make sure
+    /// you undo whatever the drag has moved or shown so far.
+    /// </summary>
+    protected virtual void OnDragCancel(DragEvent e)
+    {
+        IsDragScrolling = false;
     }
 
     /// <summary>Called when a panel being dragged moves onto this one.</summary>

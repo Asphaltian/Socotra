@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A button showing the picked option, which opens a list of <see cref="Options"/> to pick from. It sends
-/// <c>onchange</c> and calls <see cref="ValueChanged"/> when the user picks one. In markup it's <c>&lt;select&gt;</c>
-/// or <c>&lt;dropdown&gt;</c>, with an <c>&lt;option value="..."&gt;</c> inside for each choice.
+/// <c>DropDown</c> is a button that shows the picked option, and opens a list of <see cref="Options"/> to pick from when
+/// it's clicked. It sends <c>onchange</c> and calls <see cref="ValueChanged"/> when the user picks one. In markup it's
+/// <c>&lt;select&gt;</c> or <c>&lt;dropdown&gt;</c>, with an <c>&lt;option value="..."&gt;</c> inside for each choice.
 /// </summary>
 /// <example>
 /// <code>

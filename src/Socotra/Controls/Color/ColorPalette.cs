@@ -3,9 +3,10 @@ using System.Text.Json;
 namespace Socotra;
 
 /// <summary>
-/// The colors a <see cref="ColorPickerControl"/> lists under Recent and Saved. Every picker uses <see cref="Shared"/> unless
-/// you give it a palette of its own through <see cref="ColorPickerControl.Palette"/>. Recent colors last while your program
-/// runs. To keep the saved ones between runs, store what <see cref="Save"/> gives you and hand it to <see cref="Load"/> next time.
+/// <c>ColorPalette</c> holds the colors that a <see cref="ColorPickerControl"/> lists under Recent and Saved. Every
+/// picker uses <see cref="Shared"/>, unless you give it its own palette through <see cref="ColorPickerControl.Palette"/>.
+/// Recent colors only last while your program runs. If you want to keep the saved ones between runs, store what
+/// <see cref="Save"/> gives you and pass it to <see cref="Load"/> next time.
 /// </summary>
 /// <example>
 /// <code>

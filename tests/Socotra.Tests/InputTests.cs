@@ -36,11 +36,136 @@ public class InputTests
         Update(root);
     }
 
+    private static RootPanel FocusRoot(string styles = "")
+    {
+        Fonts.Load("Data/Fonts/Lato-Regular.ttf");
+        return Root(ControlTesting.Styles + ".clickable { width: 100px; height: 40px; flex-shrink: 0; } .container { width: 300px; height: 200px; }" + styles);
+    }
+
+    private static T Clickable<T>(Panel parent)
+        where T : Panel, new()
+    {
+        var panel = parent.AddChild<T>();
+        panel.AddClass("clickable");
+        return panel;
+    }
+
+    private static void ClickOn(RootPanel root, Panel panel)
+    {
+        Update(root);
+        Click(root, panel.Box.Rect.Center);
+    }
+
+    [Fact]
+    public void ClickingATextEntryFocusesIt()
+    {
+        var root = FocusRoot();
+        var entry = Clickable<TextEntry>(root);
+
+        ClickOn(root, entry);
+
+        Assert.Same(entry, root.Focused);
+    }
+
+    [Fact]
+    public void ClickingAButtonDoesNotFocusIt()
+    {
+        var root = FocusRoot();
+        var button = Clickable<Button>(root);
+
+        ClickOn(root, button);
+
+        Assert.Null(root.Focused);
+    }
+
+    [Fact]
+    public void EnterAfterClickingAButtonDoesNotClickItAgain()
+    {
+        var root = FocusRoot();
+        var button = Clickable<Button>(root);
+        var clicks = 0;
+        button.AddEventListener("onclick", () => clicks++);
+
+        ClickOn(root, button);
+        Press(root, "enter");
+
+        Assert.Equal(1, clicks);
+    }
+
+    [Fact]
+    public void ClickingAButtonFinishesEditing()
+    {
+        var root = FocusRoot();
+        var entry = Clickable<TextEntry>(root);
+        var button = Clickable<Button>(root);
+        var blurs = 0;
+        entry.AddEventListener("onblur", () => blurs++);
+
+        ClickOn(root, entry);
+        Assert.Same(entry, root.Focused);
+        ClickOn(root, button);
+
+        Assert.Null(root.Focused);
+        Assert.Equal(1, blurs);
+    }
+
+    [Fact]
+    public void ClickingEmptySpaceClearsFocus()
+    {
+        var root = FocusRoot();
+        var entry = Clickable<TextEntry>(root);
+        var empty = Clickable<Panel>(root);
+
+        ClickOn(root, entry);
+        Assert.Same(entry, root.Focused);
+        ClickOn(root, empty);
+
+        Assert.Null(root.Focused);
+    }
+
+    [Fact]
+    public void ClickingAButtonFocusesTheFocusablePanelItsIn()
+    {
+        var root = FocusRoot();
+        var container = root.AddChild<Panel>("container");
+        container.AcceptsFocus = true;
+        var button = Clickable<Button>(container);
+
+        ClickOn(root, button);
+
+        Assert.Same(container, root.Focused);
+    }
+
+    [Fact]
+    public void ClickingASuggestionKeepsTheEntryFocused()
+    {
+        var root = FocusRoot(".popup { pointer-events: all; } .popup > * { width: 100px; height: 20px; pointer-events: all; }");
+        var entry = Clickable<TextEntry>(root);
+        entry.AutoComplete = _ => ["hello"];
+        var blurs = 0;
+        entry.AddEventListener("onblur", () => blurs++);
+
+        ClickOn(root, entry);
+        Update(root);
+        Assert.Same(entry, root.Focused);
+        var popup = Assert.IsType<Popup>(entry.AutoCompletePanel);
+        Update(root);
+        Update(root);
+
+        ClickOn(root, popup.GetChild(0)!);
+
+        Assert.Equal("hello", entry.Text);
+        Assert.Same(entry, root.Focused);
+        Assert.Equal(0, blurs);
+        Assert.Null(entry.AutoCompletePanel);
+    }
+
     [Fact]
     public void ClickingHoversPressesFocusesAndClicks()
     {
         var root = Root(Styles);
-        var (first, second) = (root.AddChild<Button>("item"), root.AddChild<Button>("item"));
+        var (first, second) = (root.AddChild<Panel>("item"), root.AddChild<Panel>("item"));
+        first.AcceptsFocus = second.AcceptsFocus = true;
         int clicks = 0;
         first.AddEventListener("onclick", () => clicks++);
         Update(root);

@@ -47,7 +47,8 @@ public partial class RootPanel
     /// <summary>
     /// Sends a key or gamepad button to the focused panel. Pass key repeats as presses too. Unless a panel handles them,
     /// the arrow keys and Tab move focus, Enter and Space click the focused button, and Ctrl+C, Ctrl+X and Ctrl+V use the
-    /// <see cref="Clipboard"/>. Escape doesn't arrive as a button: pressing it sends <c>onescape</c> to the focused panel.
+    /// <see cref="Clipboard"/>. Keep in mind that Escape doesn't arrive as a button, since pressing it sends
+    /// <c>onescape</c> to the focused panel.
     /// </summary>
     public void AddButtonEvent(ButtonEvent e) => Input.AddButtonEvent(e);
 
@@ -91,7 +92,7 @@ public partial class RootPanel
         _dragText = null;
     }
 
-    /// <summary>Drops the payload of the drag from outside at <paramref name="position"/>. Returns what the panel under it did with it.</summary>
+    /// <summary>Drops whatever is being dragged in from outside at <paramref name="position"/>. Returns what the panel under it did with it.</summary>
     public DropAction Drop(Vector2 position)
     {
         var action = DispatchDrag(position, isDrop: true);

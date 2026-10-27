@@ -43,7 +43,10 @@ public readonly ref partial struct Painter
         return new LayerScope(ActiveContext, bounds, opacity, effects, mask);
     }
 
-    /// <summary>A group started with <see cref="BeginLayer"/>. Dispose it to draw the group; dispose nested groups in reverse order.</summary>
+    /// <summary>
+    /// A group that you started with <see cref="BeginLayer"/>. Dispose it to draw the group, and keep in mind that nested
+    /// groups have to be disposed in reverse order.
+    /// </summary>
     public ref struct LayerScope
     {
         private readonly State _state;

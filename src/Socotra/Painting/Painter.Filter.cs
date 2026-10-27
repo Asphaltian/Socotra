@@ -4,7 +4,7 @@ public readonly ref partial struct Painter
 {
     /// <summary>
     /// Blur and color changes for <see cref="BeginLayer"/> and <see cref="FilterBackdrop(Socotra.Rect, Filter, CornerRadii)"/>.
-    /// Start from <c>new Filter()</c>, which changes nothing, and set only what you need.
+    /// Start from <c>new Filter()</c>, which doesn't change anything, and only set what you need.
     /// </summary>
     /// <example>
     /// <code>
@@ -59,7 +59,7 @@ public readonly ref partial struct Painter
         }
     }
 
-    /// <summary>An image that hides parts of a layer. Pass it to <see cref="BeginLayer"/>.</summary>
+    /// <summary>An image that hides parts of a layer. You pass it to <see cref="BeginLayer"/>.</summary>
     /// <param name="Texture">The mask image.</param>
     /// <param name="Rect">Where the image sits.</param>
     /// <param name="Mode">Whether the image's transparency or its brightness does the hiding.</param>
@@ -94,5 +94,5 @@ public readonly ref partial struct Painter
             context.State.OverrideBlendMode);
     }
 
-    internal readonly record struct BackdropData(Rect Rect, Filter Filter, BorderRadii Radii, float Opacity);
+    internal readonly record struct BackdropData(Rect Rect, Filter Filter, BorderRadii Radii, float Opacity, ShapeInstance Shape = default);
 }

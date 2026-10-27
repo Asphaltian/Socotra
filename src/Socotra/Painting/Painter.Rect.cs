@@ -5,7 +5,7 @@ public readonly ref partial struct Painter
     /// <summary>
     /// Draws a rectangle with <see cref="Fill"/> and a CSS-style border inside it, each side with its own width and
     /// color. Pass the widths as left, top, right, bottom. The border's look comes from <see cref="Stroke"/>'s
-    /// <see cref="Socotra.Stroke.Style"/>; the rest of the stroke doesn't apply. Throws if a width is negative.
+    /// <see cref="Socotra.Stroke.Style"/>, and the rest of the stroke doesn't apply. Throws if a width is negative.
     /// </summary>
     public void Rect(Rect rect, Vector4 borderWidths, Color colorLeft, Color colorTop, Color colorRight, Color colorBottom, CornerRadii corners = default)
     {
@@ -21,7 +21,7 @@ public readonly ref partial struct Painter
             return;
         }
 
-        var desc = context.State.Fill.CreateDescriptor(rect, context);
+        context.State.Fill.CreateDescriptor(rect, context, out var desc);
         desc.Radii = corners.Resolve(rect);
         desc.Stroke = border.WithAlphaMultiplied(context.InheritedOpacity);
         Add(context, desc);
@@ -48,12 +48,12 @@ public readonly ref partial struct Painter
         };
     }
 
-    internal static bool TryGetBoxStroke(Stroke stroke, out BoxStroke result)
+    internal static bool TryGetBoxStroke(in Stroke stroke, out BoxStroke result)
     {
         result = default;
         if (!HasStroke(stroke) || stroke.Alignment != Stroke.StrokeAlignment.Inside
             || stroke.Style is BorderStyle.Dashed or BorderStyle.Dotted
-            || !stroke.Fill.TryGetSolidColor(out var color))
+            || !Stroke.GetFill(in stroke).TryGetSolidColor(out var color))
         {
             return false;
         }

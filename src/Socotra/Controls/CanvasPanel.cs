@@ -1,9 +1,10 @@
 namespace Socotra;
 
 /// <summary>
-/// A surface the user can pan with the middle mouse button and zoom with the wheel, around the mouse. Draw on it in
-/// <see cref="Panel.OnDraw"/> with <see cref="CanvasToScreen"/>, or put ordinary panels in <see cref="Content"/> and
-/// they move and scale with the view. Canvas coordinates are yours to choose: set what's in view with <see cref="SetView"/>.
+/// <c>CanvasPanel</c> is a surface that the user can pan with the middle mouse button and zoom around the mouse with the
+/// wheel. You can draw on it in <see cref="Panel.OnDraw"/> with <see cref="CanvasToScreen"/>, or put ordinary panels in
+/// <see cref="Content"/>, and they'll move and scale with the view. Canvas coordinates are up to you, so set what's in
+/// view with <see cref="SetView"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -41,16 +42,16 @@ public partial class CanvasPanel : Panel
     /// <summary>Makes canvas Y go up the screen, like a graph, instead of down.</summary>
     public bool YAxisUp { get; set; }
 
-    /// <summary>Keeps the canvas from stretching: the view is scaled evenly and shows extra space around it to fill the panel. Turn it off for graphs whose axes scale separately. On by default.</summary>
+    /// <summary>Keeps the canvas from stretching, so the view is scaled evenly and shows extra space around it to fill the panel. Set this to <c>false</c> for graphs whose axes scale separately.</summary>
     public bool PreserveAspectRatio { get; set; } = true;
 
-    /// <summary>How far in the user can zoom: the smallest span of canvas units the view can show.</summary>
+    /// <summary>How far in the user can zoom, as the smallest span of canvas units that the view can show.</summary>
     public float MinimumViewSpan { get; set; } = 0.000001f;
 
-    /// <summary>How far out the user can zoom: the largest span of canvas units the view can show.</summary>
+    /// <summary>How far out the user can zoom, as the largest span of canvas units that the view can show.</summary>
     public float MaximumViewSpan { get; set; } = 1000000000;
 
-    /// <summary>Whether the user is panning with the middle mouse button right now.</summary>
+    /// <summary>Returns <c>true</c> while the user is panning with the middle mouse button.</summary>
     public bool IsPanning { get; private set; }
 
     /// <summary>
@@ -86,7 +87,7 @@ public partial class CanvasPanel : Panel
         }
     }
 
-    /// <summary>Whether the user can pan and zoom right now. By default, not while a <see cref="Handle"/> is being dragged.</summary>
+    /// <summary>Return <c>true</c> if the user can pan and zoom right now. By default they can't while a <see cref="Handle"/> is being dragged.</summary>
     protected virtual bool CanNavigate => !Descendants.OfType<Handle>().Any(x => x.IsDragging);
 
     /// <summary>The part of the panel the canvas shows in, in pixels from its top left corner. The whole panel by default.</summary>

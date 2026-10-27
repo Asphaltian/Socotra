@@ -30,12 +30,12 @@ public class MousePanelEvent : PanelEvent
     /// <summary>The modifier keys held at the time, so a shift-click can do something different to a plain click.</summary>
     public KeyboardModifiers KeyboardModifiers { get; set; }
 
-    /// <summary>Whether Shift was held.</summary>
+    /// <summary>Returns <c>true</c> if Shift was held.</summary>
     public bool HasShift => (KeyboardModifiers & KeyboardModifiers.Shift) != 0;
 
-    /// <summary>Whether Ctrl was held.</summary>
+    /// <summary>Returns <c>true</c> if Ctrl was held.</summary>
     public bool HasCtrl => (KeyboardModifiers & KeyboardModifiers.Ctrl) != 0;
 
-    /// <summary>Whether Alt was held.</summary>
+    /// <summary>Returns <c>true</c> if Alt was held.</summary>
     public bool HasAlt => (KeyboardModifiers & KeyboardModifiers.Alt) != 0;
 }

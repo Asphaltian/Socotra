@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Socotra;
 
 public readonly ref partial struct Painter
@@ -42,13 +44,33 @@ public readonly ref partial struct Painter
     /// }
     /// </code>
     /// </example>
-    public void Translate(float x, float y) => Transform = Matrix4x4.CreateTranslation(new Vector3(x, y, 0)) * Transform;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Translate(float x, float y)
+    {
+        ref var current = ref ActiveContext.State.Transform;
+        var transform = current;
+        transform.TranslateLocal2D(x, y);
+        if (!float.IsFinite(transform.M41) || !float.IsFinite(transform.M42))
+        {
+            throw new ArgumentException("Expected a finite 2D affine matrix.", "value");
+        }
+
+        current.M41 = transform.M41;
+        current.M42 = transform.M42;
+    }
 
     /// <summary>
     /// Turns everything you draw from now on clockwise by <paramref name="degrees"/>, around the current 0, 0.
     /// Call <see cref="Translate(float, float)"/> first to turn around another point.
     /// </summary>
-    public void Rotate(float degrees) => Transform = Matrix4x4.CreateRotationZ(float.DegreesToRadians(degrees)) * Transform;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Rotate(float degrees)
+    {
+        ref var current = ref ActiveContext.State.Transform;
+        var transform = current;
+        transform.RotateLocal2D(degrees);
+        SetAxes(ref current, transform);
+    }
 
     /// <summary>
     /// Makes everything you draw from now on bigger or smaller, strokes and text included. 2 is twice the size.
@@ -63,5 +85,27 @@ public readonly ref partial struct Painter
     /// <summary>
     /// Stretches everything you draw from now on by <paramref name="x"/> across and <paramref name="y"/> down.
     /// </summary>
-    public void Scale(float x, float y) => Transform = Matrix4x4.CreateScale(new Vector3(x, y, 1)) * Transform;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Scale(float x, float y)
+    {
+        ref var current = ref ActiveContext.State.Transform;
+        var transform = current;
+        transform.ScaleLocal2D(x, y);
+        SetAxes(ref current, transform);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static void SetAxes(ref Matrix4x4 current, in Matrix4x4 transform)
+    {
+        if (!float.IsFinite(transform.M11) || !float.IsFinite(transform.M12)
+            || !float.IsFinite(transform.M21) || !float.IsFinite(transform.M22))
+        {
+            throw new ArgumentException("Expected a finite 2D affine matrix.", "value");
+        }
+
+        current.M11 = transform.M11;
+        current.M12 = transform.M12;
+        current.M21 = transform.M21;
+        current.M22 = transform.M22;
+    }
 }

@@ -3,9 +3,10 @@ using System.Globalization;
 namespace Socotra;
 
 /// <summary>
-/// A horizontal or vertical axis for a graph: tick marks with number or custom labels, an optional title, and optional
-/// boxes at each end where the user can type the axis range. It only shows a range; it doesn't change the graph itself.
-/// <see cref="GraphPanel"/> makes and sizes two of these for you. In markup it's <c>&lt;graphaxis&gt;</c>.
+/// <c>GraphAxis</c> is a horizontal or vertical axis for a graph. It has tick marks with number or custom labels, an
+/// optional title, and optional boxes at each end where the user can type in the axis range. Keep in mind that it only
+/// shows a range, it doesn't change the graph itself. <see cref="GraphPanel"/> creates and sizes two of these for you.
+/// In markup it's <c>&lt;graphaxis&gt;</c>.
 /// </summary>
 [StyleSheet.Inline("graphaxis", ".graphaxis { position: absolute; overflow: visible; pointer-events: none; } .graphaxis > .graph-axis-bound { position: absolute; min-width: 0; height: 24px; pointer-events: all; } .graphaxis > .graph-axis-bound .content-label { width: 100%; }")]
 public class GraphAxis : Panel
@@ -300,7 +301,7 @@ public class GraphAxis : Panel
         }
     }
 
-    /// <summary>A tick on an axis: where it is in axis units, its label, and whether it's a labeled tick or a smaller one between them.</summary>
+    /// <summary>A tick on an axis, with where it is in axis units, its label, and whether it's a labeled tick or a smaller one between them.</summary>
     /// <param name="Value">Where the tick is, in axis units.</param>
     /// <param name="Label">The text shown by the tick. Only labeled ticks are drawn with it.</param>
     /// <param name="Major">Whether the tick is labeled. Smaller ticks between them only show as fainter grid lines.</param>

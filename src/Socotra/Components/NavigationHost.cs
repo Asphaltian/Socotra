@@ -6,9 +6,9 @@ using Socotra.Html;
 namespace Socotra;
 
 /// <summary>
-/// Shows one page at a time and lets you move between them by url, like a website. A page is any panel with
-/// <c>@page "/url"</c> at the top of its Razor file. Pages keep their state when you leave them, and you can
-/// go back and forward. In markup it's <c>&lt;navigator&gt;</c>.
+/// <c>NavigationHost</c> shows one page at a time and lets you move between pages by url, just like a website. A page
+/// is any panel that has <c>@page "/url"</c> at the top of its Razor file. Pages keep their state when you leave them,
+/// and you can go back and forward. In markup it's <c>&lt;navigator&gt;</c>.
 /// </summary>
 /// <example>
 /// <code>
@@ -186,8 +186,8 @@ public class NavigationHost : Panel
     public IEnumerable<(string key, string? value)> ExtractProperties(string[] parts, string url) => RouteAttribute.ExtractProperties(parts, url);
 
     /// <summary>
-    /// Whether the url showing now matches <paramref name="url"/>. You can use <c>*</c> and <c>?</c> wildcards,
-    /// start with <c>~</c> to match only the end, and add a query whose values all have to match.
+    /// Returns <c>true</c> if the url that's showing right now matches <paramref name="url"/>. You can use <c>*</c> and
+    /// <c>?</c> wildcards, start with <c>~</c> to only match the end, and add a query whose values all have to match.
     /// </summary>
     public bool CurrentUrlMatches(string? url)
     {
@@ -397,14 +397,14 @@ public class NavigationHost : Panel
     }
 }
 
-/// <summary>For panels inside a <see cref="NavigationHost"/> that want to know when its url changes.</summary>
+/// <summary>Implement this on a panel inside a <see cref="NavigationHost"/> if you want to know when its url changes.</summary>
 public interface INavigationEvent
 {
     /// <summary>Called when the host's url changes.</summary>
     void OnNavigated(string? url);
 }
 
-/// <summary>For pages of a <see cref="NavigationHost"/> that want to know when they're shown and hidden.</summary>
+/// <summary>Implement this on a page of a <see cref="NavigationHost"/> if you want to know when it's shown and hidden.</summary>
 public interface INavigatorPage
 {
     /// <summary>Called when the page is shown.</summary>
@@ -418,12 +418,12 @@ public interface INavigatorPage
     }
 }
 
-/// <summary>Navigation helpers for panels.</summary>
+/// <summary>Helpers that let any panel find and navigate the <see cref="NavigationHost"/> it's in.</summary>
 public static class NavigationExtensions
 {
     extension(Panel panel)
     {
-        /// <summary>The closest <see cref="NavigationHost"/>: this panel or one of its ancestors.</summary>
+        /// <summary>Returns the closest <see cref="NavigationHost"/>, which is either this panel or one of its ancestors.</summary>
         public NavigationHost? GetNavigator() => panel.AncestorsAndSelf.OfType<NavigationHost>().FirstOrDefault();
 
         /// <summary>Navigates the closest <see cref="NavigationHost"/> to <paramref name="url"/>, and returns the page it shows.</summary>

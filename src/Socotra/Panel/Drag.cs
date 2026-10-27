@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// Files or text dragged out of your UI, to drop on other panels, other windows, other apps or the desktop. Fill it in,
-/// then call <see cref="Start"/>. The drag itself runs through your platform: set <see cref="StartHandler"/> once at startup.
+/// <c>Drag</c> is files or text that the user drags out of your UI, to drop on other panels, other windows, other apps
+/// or the desktop. Fill it in, and then call <see cref="Start"/>. Don't forget to set <see cref="StartHandler"/> once at
+/// startup, since the drag itself goes through your platform's drag and drop.
 /// </summary>
 /// <example>
 /// <code>

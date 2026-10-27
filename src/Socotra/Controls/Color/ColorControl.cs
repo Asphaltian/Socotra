@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A compact color field: a swatch showing the color and a box the user can type it into, written any way a stylesheet
-/// would, like <c>#ff8000</c>, <c>rgb( 255, 128, 0 )</c> or <c>orange</c>. Add <c>* 4</c> after it for a color four
-/// times brighter than normal. Text that isn't a color turns red and changes nothing. Clicking the swatch opens a
-/// <see cref="ColorPickerControl"/> under it.
+/// <c>ColorControl</c> is a compact color field, with a swatch that shows the color and a box where the user can type it
+/// in. They can write it any way a stylesheet would, like <c>#ff8000</c>, <c>rgb( 255, 128, 0 )</c> or <c>orange</c>,
+/// and adding <c>* 4</c> after it makes the color four times brighter than normal. Text that isn't a color turns red
+/// and doesn't change anything. Clicking the swatch opens a <see cref="ColorPickerControl"/> right under it.
 /// </summary>
 /// <example>
 /// <code>
@@ -96,7 +96,7 @@ public class ColorControl : Panel
         }
     }
 
-    /// <summary>Whether the color can be see-through. When it's off, typed colors lose their transparency. On by default.</summary>
+    /// <summary>Set this to <c>false</c> if the color shouldn't be see-through. Typed colors then lose their transparency.</summary>
     [Parameter]
     public bool HasAlpha
     {
@@ -109,7 +109,7 @@ public class ColorControl : Panel
         }
     }
 
-    /// <summary>Whether the color can be brighter than white. When it's off, typed colors lose their <c>* N</c> brightness. On by default.</summary>
+    /// <summary>Set this to <c>false</c> if the color shouldn't be brighter than white. Typed colors then lose their <c>* N</c> brightness.</summary>
     [Parameter]
     public bool IsHdr
     {

@@ -31,9 +31,13 @@ internal sealed partial class PainterBatcher(DrawList list)
 
     public Table<PathNode> PathNodes { get; } = new();
 
+    public Table<Vector2> PolygonPoints { get; } = new();
+
     public List<Painter.ClipEntry> DrawClips { get; } = [];
 
     public DrawList List => list;
+
+    public const int MaxPolygonPoints = 128;
 
     public static int MaxBufferElements<T>() where T : unmanaged => (int)Math.Min(Array.MaxLength, uint.MaxValue / (long)Unsafe.SizeOf<T>());
 
@@ -50,6 +54,7 @@ internal sealed partial class PainterBatcher(DrawList list)
         Shapes.Clear();
         Paths.Clear();
         PathNodes.Clear();
+        PolygonPoints.Clear();
         _pathLookup.Clear();
         _batchStart = 0;
         _targetDepth = 0;
@@ -133,16 +138,36 @@ internal sealed partial class PainterBatcher(DrawList list)
 
     public void Add(in Painter.BoxDescriptor descriptor, float opacity, BlendMode blendMode, Matrix4x4? transform = null, int clipIndex = -1)
     {
-        var instance = Resolve(descriptor, transform ?? Matrix4x4.Identity, clipIndex);
+        Resolve(descriptor, transform ?? Matrix4x4.Identity, clipIndex, out var instance);
         instance.ApplyOpacity(opacity);
         Append(instance, blendMode);
     }
 
-    public void Add(in Painter.ShadowDescriptor descriptor, Matrix4x4? transform = null, int clipIndex = -1) =>
-        Append(Resolve(descriptor, transform ?? Matrix4x4.Identity, clipIndex), descriptor.Inset ? descriptor.OverrideBlendMode : BlendMode.Normal);
+    public void AddSolidShape(Rect bounds, Color color, int shapeIndex, BackgroundClip backgroundClip,
+        in Vector4 fillInsets, in Matrix4x4 transform, int clipIndex, BlendMode blendMode)
+    {
+        BoxInstance instance = default;
+        instance.Rect = new Vector4(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+        instance.Color = color;
+        instance.ShapeIndex = shapeIndex;
+        instance.InverseScissorIndex = -1;
+        instance.BackgroundClip = (int)backgroundClip;
+        instance.BackgroundClipRect = fillInsets;
+        ResolveSpatial(ref instance, clipIndex, Destination.ResolveSpatial(this, transform));
+        Append(instance, blendMode);
+    }
 
-    public void Add(in Painter.OutlineDescriptor descriptor, Matrix4x4? transform = null, int clipIndex = -1) =>
-        Append(Resolve(descriptor, transform ?? Matrix4x4.Identity, clipIndex), descriptor.OverrideBlendMode);
+    public void Add(in Painter.ShadowDescriptor descriptor, Matrix4x4? transform = null, int clipIndex = -1)
+    {
+        Resolve(descriptor, transform ?? Matrix4x4.Identity, clipIndex, out var instance);
+        Append(instance, descriptor.Inset ? descriptor.OverrideBlendMode : BlendMode.Normal);
+    }
+
+    public void Add(in Painter.OutlineDescriptor descriptor, Matrix4x4? transform = null, int clipIndex = -1)
+    {
+        Resolve(descriptor, transform ?? Matrix4x4.Identity, clipIndex, out var instance);
+        Append(instance, descriptor.OverrideBlendMode);
+    }
 
     public int GetOrAddScissor(in Painter.Scissoring scissor, int next = -1)
     {
@@ -197,7 +222,45 @@ internal sealed partial class PainterBatcher(DrawList list)
             return -1;
         }
 
-        return Shapes.TryGet(shape, out var index) ? index : Shapes.Add(shape, shape);
+        return Shapes.GetOrAdd(shape, shape);
+    }
+
+    public int AddShape(in ShapeInstance shape) => Shapes.Add(shape);
+
+    public int AddPath(ShapeInstance shape, ReadOnlySpan<PathPrimitive> primitives, int maskIndex = 0)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(primitives.Length, Painter.Path.Data.MaxPrimitiveCount);
+        int nodeCount = checked(Math.Max(0, primitives.Length * 2 - 1));
+        if (maskIndex != 0)
+        {
+            shape.PolygonCount = maskIndex;
+        }
+
+        shape.PathOffset = Paths.Count;
+        shape.PathCount = primitives.Length;
+        shape.PathNodeOffset = PathNodes.Count;
+        shape.PathNodeCount = nodeCount;
+        Paths.AddRange(primitives);
+        Painter.Path.Data.BuildNodes(shape, primitives, PathNodes.Append(nodeCount));
+        return Shapes.Add(shape);
+    }
+
+    public int AddPolygonPoints(ReadOnlySpan<Vector2> points, Vector2 origin)
+    {
+        int offset = PolygonPoints.Count;
+        var destination = PolygonPoints.Append(points.Length);
+        for (int i = 0; i < points.Length; i++)
+        {
+            destination[i] = points[i] - origin;
+        }
+
+        return AddShape(new ShapeInstance
+        {
+            Kind = ShapeKind.PolygonPath,
+            PathOffset = offset,
+            PathCount = points.Length,
+            PathNodeCount = -1,
+        });
     }
 
     public int GetOrAddPath(Painter.Path.Data path)
@@ -333,7 +396,7 @@ internal sealed partial class PainterBatcher(DrawList list)
             _scissorIndex = previous.Index;
         }
 
-        public Spatial ResolveSpatial(PainterBatcher batcher, Matrix4x4 localTransform)
+        public Spatial ResolveSpatial(PainterBatcher batcher, in Matrix4x4 localTransform)
         {
             _scissorIndex ??= batcher.GetOrAddScissor(Scissor);
             if (!_transformIndex.HasValue || _localTransform != localTransform)
@@ -360,11 +423,18 @@ internal sealed partial class PainterBatcher(DrawList list)
 
         public int Add(in T item)
         {
-            _items.Add(item);
+            Append(1)[0] = item;
             return _items.Count - 1;
         }
 
         public void AddRange(ReadOnlySpan<T> items) => _items.AddRange(items);
+
+        public Span<T> Append(int count)
+        {
+            int start = _items.Count;
+            CollectionsMarshal.SetCount(_items, checked(start + count));
+            return CollectionsMarshal.AsSpan(_items).Slice(start, count);
+        }
 
         public virtual void Clear() => _items.Clear();
     }
@@ -376,6 +446,17 @@ internal sealed partial class PainterBatcher(DrawList list)
         private readonly Dictionary<TKey, int> _lookup = [];
 
         public bool TryGet(in TKey key, out int index) => _lookup.TryGetValue(key, out index);
+
+        public int GetOrAdd(in TKey key, in T item)
+        {
+            ref int index = ref CollectionsMarshal.GetValueRefOrAddDefault(_lookup, key, out bool exists);
+            if (!exists)
+            {
+                index = Add(item);
+            }
+
+            return index;
+        }
 
         public int Add(in TKey key, in T item)
         {

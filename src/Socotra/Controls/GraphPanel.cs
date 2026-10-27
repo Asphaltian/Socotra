@@ -1,10 +1,11 @@
 namespace Socotra;
 
 /// <summary>
-/// A graph area the user can pan and zoom, with an axis along the bottom and left and a grid behind. Subclass it and
-/// draw your data in <see cref="OnDraw"/> after calling the base method, placing points with <see cref="CanvasPanel.CanvasToScreen"/>.
-/// Typing in the axis end boxes only reports the edit through <see cref="AxisBoundEdited"/>; it doesn't change the data or
-/// the view. In markup it's <c>&lt;graphpanel&gt;</c>.
+/// <c>GraphPanel</c> is a graph area that the user can pan and zoom, with an axis along the bottom and the left and a grid
+/// behind it. Subclass it and draw your data in <see cref="OnDraw"/> after calling the base method, placing points with
+/// <see cref="CanvasPanel.CanvasToScreen"/>. Please note that typing in the boxes at the ends of the axes only reports
+/// the edit through <see cref="AxisBoundEdited"/>, it doesn't change the data or the view. In markup it's
+/// <c>&lt;graphpanel&gt;</c>.
 /// </summary>
 /// <example>
 /// <code>
@@ -38,7 +39,10 @@ public class GraphPanel : CanvasPanel
         PreserveAspectRatio = false;
     }
 
-    /// <summary>Called when the user types a new end for an axis: which axis, true for its maximum end, and the number in axis units. Apply it however suits your graph.</summary>
+    /// <summary>
+    /// Called when the user types a new end for an axis. You get which axis it is, <c>true</c> for its maximum end, and the
+    /// number in axis units, so apply it however suits your graph.
+    /// </summary>
     public event Action<Axis, bool, float>? AxisBoundEdited;
 
     /// <summary>Called when the user starts typing in an axis end box.</summary>
@@ -74,13 +78,13 @@ public class GraphPanel : CanvasPanel
         set => HorizontalAxis.EditableBounds = VerticalAxis.EditableBounds = value;
     }
 
-    /// <summary>Draws grid lines at the axes' ticks. On by default.</summary>
+    /// <summary>Draws grid lines at the ticks of the axes. It's on by default.</summary>
     public bool ShowGrid { get; set; } = true;
 
-    /// <summary>Draws a frame around the plot. On by default.</summary>
+    /// <summary>Draws a frame around the plot. It's on by default.</summary>
     public bool ShowFrame { get; set; } = true;
 
-    /// <summary>Draws the lines through zero on both axes a little brighter. On by default.</summary>
+    /// <summary>Draws the lines through zero on both axes a little brighter. It's on by default.</summary>
     public bool ShowZeroLines { get; set; } = true;
 
     /// <summary>Where the plot is inside the panel, in pixels. The axes take the space around it.</summary>

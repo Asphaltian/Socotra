@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A scrolling grid for lots of items. It fits as many <see cref="ItemSize"/> columns across as it can, then
-/// stretches the cells to fill the width, keeping their shape. Only the cells in view exist.
+/// <c>VirtualGrid</c> is a scrolling grid for lots of items. It fits as many <see cref="ItemSize"/> columns across as it
+/// can, and then stretches the cells to fill the width while keeping their shape. Only the cells that are in view
+/// exist.
 /// </summary>
 public sealed class VirtualGrid : BaseVirtualPanel
 {

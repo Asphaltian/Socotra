@@ -21,8 +21,8 @@ public readonly ref partial struct Painter
 
     internal TargetScope Target(Rect bounds) => new(this, bounds);
 
-    internal void FilterBackdrop(Rect rect, Filter filter, BorderRadii radii) =>
-        Output.AddBackdrop(new BackdropData(rect, filter, radii, InheritedOpacity), InheritedBlendMode);
+    internal void FilterBackdrop(Rect rect, Filter filter, BorderRadii radii, in ShapeInstance shape = default) =>
+        Output.AddBackdrop(new BackdropData(rect, filter, radii, InheritedOpacity, shape), InheritedBlendMode);
 
     internal ref struct ContentScope
     {

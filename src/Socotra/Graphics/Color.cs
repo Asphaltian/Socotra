@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Socotra;
 
-/// <summary>An sRGB color with red, green, blue and alpha from 0 to 1.</summary>
+/// <summary><c>Color</c> is an sRGB color, with red, green, blue and alpha going from 0 to 1.</summary>
 /// <example><code>
 /// // Three ways to get the same orange
 /// var a = new Color(1, 0.5f, 0);

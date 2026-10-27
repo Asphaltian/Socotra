@@ -1,8 +1,9 @@
 namespace Socotra;
 
 /// <summary>
-/// A key or button going down or up. Pass one to <see cref="RootPanel.AddButtonEvent"/> and the focused panel
-/// gets it. Buttons have lower case names, like <c>up</c>, <c>enter</c>, <c>escape</c>, <c>tab</c>, <c>a</c> or <c>mouseleft</c>.
+/// <c>ButtonEvent</c> is a key or button going down or up. Pass one to <see cref="RootPanel.AddButtonEvent"/>, and the
+/// focused panel gets it. Keep in mind that buttons have lower case names, like <c>up</c>, <c>enter</c>,
+/// <c>escape</c>, <c>tab</c>, <c>a</c> or <c>mouseleft</c>.
 /// </summary>
 public record ButtonEvent
 {
@@ -27,13 +28,13 @@ public record ButtonEvent
     /// <summary>The modifier keys held at the time.</summary>
     public KeyboardModifiers KeyboardModifiers { get; }
 
-    /// <summary>Whether Shift was held.</summary>
+    /// <summary>Returns <c>true</c> if Shift was held.</summary>
     public bool HasShift => (KeyboardModifiers & KeyboardModifiers.Shift) != 0;
 
-    /// <summary>Whether Ctrl was held.</summary>
+    /// <summary>Returns <c>true</c> if Ctrl was held.</summary>
     public bool HasCtrl => (KeyboardModifiers & KeyboardModifiers.Ctrl) != 0;
 
-    /// <summary>Whether Alt was held.</summary>
+    /// <summary>Returns <c>true</c> if Alt was held.</summary>
     public bool HasAlt => (KeyboardModifiers & KeyboardModifiers.Alt) != 0;
 
     /// <summary>Set to true once you've handled the button, so the panel's parents leave it alone.</summary>

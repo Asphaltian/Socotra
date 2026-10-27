@@ -1,6 +1,9 @@
 namespace Socotra;
 
-/// <summary>A row of menu headings, like File, Edit and View. Click one to open it; while one is open, hovering another switches to it.</summary>
+/// <summary>
+/// <c>MenuBar</c> is a row of menu headings, like File, Edit and View. Clicking one opens it, and while one is open,
+/// hovering another one switches to it.
+/// </summary>
 /// <example>
 /// <code>
 /// // A menu bar with a File menu

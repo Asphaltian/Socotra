@@ -6,17 +6,17 @@ public enum DropAction
     /// <summary>The drop is rejected.</summary>
     None,
 
-    /// <summary>The payload would be copied.</summary>
+    /// <summary>What's being dragged would be copied.</summary>
     Copy,
 
-    /// <summary>The payload would be moved.</summary>
+    /// <summary>What's being dragged would be moved.</summary>
     Move,
 }
 
 /// <summary>
-/// Files or text dragged in from outside the app, like from the desktop. Handle it in an <c>ondrop</c> listener: while
-/// <see cref="IsDrop"/> is false it's still hovering, so set <see cref="Action"/> to say whether you'd take it. When
-/// <see cref="IsDrop"/> is true, use <see cref="Files"/> or <see cref="Text"/>.
+/// <c>DropEvent</c> is files or text that the user drags in from outside your app, like from the desktop. You handle it
+/// in an <c>ondrop</c> listener. While <see cref="IsDrop"/> is false it's still hovering, so set <see cref="Action"/> to
+/// say whether you'd take it. Once <see cref="IsDrop"/> is true, use <see cref="Files"/> or <see cref="Text"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -54,7 +54,7 @@ public class DropEvent : PanelEvent
     /// <summary>Where the drag is, in the same pixels as <see cref="RootPanel.Bounds"/>.</summary>
     public Vector2 Position { get; init; }
 
-    /// <summary>False while the drag is still hovering: look at the payload and set <see cref="Action"/> to answer. True when it lands.</summary>
+    /// <summary><c>false</c> while the drag is still hovering, so look at what's in it and set <see cref="Action"/> to answer. It's <c>true</c> once it lands.</summary>
     public bool IsDrop { get; init; }
 
     /// <summary>What dropping here would do. Leave it at <see cref="DropAction.None"/> to reject the drop.</summary>

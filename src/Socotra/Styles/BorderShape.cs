@@ -13,12 +13,12 @@ public enum BorderShapeKind
     Circle,
 }
 
-/// <summary>A corner of a polygon <c>border-shape</c>, measured from the panel's top left. Percentages are of the panel's size.</summary>
+/// <summary>A corner of a polygon <c>border-shape</c>, measured from the panel's top left. Percentages are of the panel's own size.</summary>
 public readonly record struct BorderShapePoint(Length X, Length Y);
 
 /// <summary>
-/// A <c>border-shape</c>: a polygon or circle the panel is drawn in and clicked in, instead of its box.
-/// It doesn't cut off children; use <c>overflow</c> for that.
+/// <c>BorderShape</c> is a <c>border-shape</c>, which is a polygon or circle that the panel is drawn and clicked in
+/// instead of its box. Keep in mind that it doesn't cut off children, so use <c>overflow</c> for that.
 /// </summary>
 public sealed class BorderShape : IEquatable<BorderShape>
 {
@@ -39,7 +39,7 @@ public sealed class BorderShape : IEquatable<BorderShape>
     /// <summary>No shape, so the panel keeps its normal box.</summary>
     public static BorderShape None { get; } = new(BorderShapeKind.None, [], null, default, default);
 
-    /// <summary>Whether it's a polygon, a circle or no shape.</summary>
+    /// <summary>What kind of shape it is: a polygon, a circle or no shape at all.</summary>
     public BorderShapeKind Kind { get; }
 
     /// <summary>A polygon's corners, in order. Empty for a circle.</summary>
@@ -54,7 +54,7 @@ public sealed class BorderShape : IEquatable<BorderShape>
     /// <summary>How far a circle's center is from the panel's top edge.</summary>
     public Length CircleCenterY { get; }
 
-    /// <summary>Whether this is <see cref="None"/>.</summary>
+    /// <summary>Returns <c>true</c> if this is <see cref="None"/>.</summary>
     public bool IsNone => Kind == BorderShapeKind.None;
 
     /// <summary>A polygon with the corners in <paramref name="points"/>, in order.</summary>

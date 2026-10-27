@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A tree of your own objects that the user can open, close, select and scroll through. Give it the top level items in
-/// <see cref="Roots"/> and a way to get an item's children in <see cref="GetChildren"/>. Return lists or arrays from
-/// <see cref="GetChildren"/> and the tree notices when items are added or removed.
+/// <c>TreeView</c> is a tree of your own objects that the user can open, close, select and scroll through. Give it the
+/// top level items in <see cref="Roots"/>, and a way to get an item's children in <see cref="GetChildren"/>. If you
+/// return lists or arrays from <see cref="GetChildren"/>, the tree notices when items are added or removed.
 /// </summary>
 /// <example>
 /// <code>
@@ -57,13 +57,14 @@ public class TreeView<T> : BaseTreeView
     public Func<T, IEnumerable<T>?>? GetChildren { get; set; }
 
     /// <summary>
-    /// The parent of an item, or default for a top level item. You don't have to give it; without it, finding an item for
-    /// <see cref="Select"/>, <see cref="ScrollTo"/> or <see cref="Highlight"/> looks through the tree from <see cref="Roots"/>.
+    /// The parent of an item, or default for a top level item. You don't have to set this, but without it,
+    /// <see cref="Select"/>, <see cref="ScrollTo"/> and <see cref="Highlight"/> have to look through the tree from
+    /// <see cref="Roots"/> to find an item.
     /// </summary>
     [Parameter]
     public Func<T, T?>? GetParent { get; set; }
 
-    /// <summary>Whether an item can be opened. You don't have to give it; without it the tree asks <see cref="GetChildren"/>.</summary>
+    /// <summary>Tells the tree whether an item can be opened. You don't have to set this, since the tree asks <see cref="GetChildren"/> without it.</summary>
     [Parameter]
     public Func<T, bool>? CanExpand { get; set; }
 
@@ -75,7 +76,7 @@ public class TreeView<T> : BaseTreeView
     [Parameter]
     public Func<T, string?>? GetTooltip { get; set; }
 
-    /// <summary>Whether F2 can rename an item. Without it, every item can be renamed once <see cref="OnRename"/> is set.</summary>
+    /// <summary>Tells the tree whether F2 can rename an item. If you don't set this, every item can be renamed once <see cref="OnRename"/> is set.</summary>
     [Parameter]
     public Func<T, bool>? CanRename { get; set; }
 
@@ -110,7 +111,7 @@ public class TreeView<T> : BaseTreeView
     [Parameter]
     public Action<T, string>? OnRename { get; set; }
 
-    /// <summary>Whether an item can be dragged. Setting it lets the user drag rows.</summary>
+    /// <summary>Tells the tree whether an item can be dragged. The user can only drag rows once you set this.</summary>
     [Parameter]
     public Func<T, bool>? CanDrag { get; set; }
 
@@ -162,10 +163,10 @@ public class TreeView<T> : BaseTreeView
         return -1;
     }
 
-    /// <summary>Whether <paramref name="item"/> is open.</summary>
+    /// <summary>Returns <c>true</c> if <paramref name="item"/> is open.</summary>
     public bool IsOpen(T item) => _open.Contains(item);
 
-    /// <summary>Whether <paramref name="item"/> is selected.</summary>
+    /// <summary>Returns <c>true</c> if <paramref name="item"/> is selected.</summary>
     public bool IsSelected(T item) => _selection.Contains(item);
 
     /// <summary>Opens <paramref name="item"/>, and everything inside it when <paramref name="recursive"/> is true.</summary>
@@ -567,7 +568,7 @@ public class TreeView<T> : BaseTreeView
     }
 }
 
-/// <summary>A <see cref="TreeView{T}"/> over plain objects, for Razor markup that doesn't want to name a type.</summary>
+/// <summary>A <see cref="TreeView{T}"/> of plain objects. It's handy in Razor markup when you don't want to name a type.</summary>
 public sealed class TreeView : TreeView<object>
 {
 }

@@ -2,18 +2,61 @@ namespace Socotra;
 
 public partial class DockHost
 {
-    private static Vector2 MinimumSize(DockNode node)
+    private (float Min, float Max) SizeLimits(DockNode node, bool vertical)
     {
-        if (node is not DockSplit split)
+        if (node is DockGroup group)
         {
-            return new Vector2(120, 80);
+            return GroupSizeLimits(group, vertical);
         }
 
-        var first = MinimumSize(split.First);
-        var second = MinimumSize(split.Second);
-        return split.Vertical
-            ? new Vector2(MathF.Max(first.X, second.X), first.Y + second.Y + 5)
-            : new Vector2(first.X + second.X + 5, MathF.Max(first.Y, second.Y));
+        var split = (DockSplit)node;
+        var first = SizeLimits(split.First, vertical);
+        var second = SizeLimits(split.Second, vertical);
+        if (split.Vertical != vertical)
+        {
+            var minimum = MathF.Max(first.Min, second.Min);
+            var maximum = MathF.Min(first.Max, second.Max);
+            return (minimum, MathF.Max(minimum, maximum));
+        }
+
+        var divider = _views.TryGetValue(split, out var view) && view is SplitView sizing ? sizing.DividerSize : 5;
+        return (first.Min + second.Min + divider, first.Max + second.Max + divider);
+    }
+
+    private (float Min, float Max) GroupSizeLimits(DockGroup group, bool vertical)
+    {
+        float minimum = vertical ? 80 : 120;
+        float maximum = 0;
+        var chrome = GroupChromeSize(group, vertical);
+        foreach (var id in group.Items)
+        {
+            var style = Find(id)?.Content?.ComputedStyle;
+            var min = vertical ? style?.MinHeight : style?.MinWidth;
+            var max = vertical ? style?.MaxHeight : style?.MaxWidth;
+            if (min is { Unit: LengthUnit.Pixels } minPixels)
+            {
+                minimum = MathF.Max(minimum, (minPixels.Value * ScaleFromScreen) + chrome);
+            }
+
+            var contentMaximum = max is { Unit: LengthUnit.Pixels } maxPixels ? (maxPixels.Value * ScaleFromScreen) + chrome : float.PositiveInfinity;
+            maximum = MathF.Max(maximum, contentMaximum);
+        }
+
+        return (minimum, MathF.Max(minimum, maximum));
+    }
+
+    private float GroupChromeSize(DockGroup group, bool vertical)
+    {
+        if (!_views.TryGetValue(group, out var view) || view is not GroupView pane)
+        {
+            return 0;
+        }
+
+        var box = pane.Body.Box;
+        var size = vertical
+            ? pane.Tabs.Box.RectOuter.Height + box.Border.Top + box.Border.Bottom + box.Padding.Top + box.Padding.Bottom
+            : box.Border.Left + box.Border.Right + box.Padding.Left + box.Padding.Right;
+        return MathF.Max(0, size) * ScaleFromScreen;
     }
 
     private sealed class DockTabBar(DockHost host) : TabBar
@@ -112,16 +155,10 @@ public partial class DockHost
             _host.EndDrag(e.ScreenPosition);
         }
 
-        protected override void OnEscape(PanelEvent e)
+        protected override void OnDragCancel(DragEvent e)
         {
             e.StopPropagation();
             _host.CancelDrag();
-        }
-
-        protected override void OnBlur(PanelEvent e)
-        {
-            _host.CancelDrag();
-            base.OnBlur(e);
         }
     }
 
@@ -130,9 +167,14 @@ public partial class DockHost
         private readonly DockHost _host;
         private readonly DockSplit _split;
         private readonly Panel _handle;
+        private readonly List<(float StartSize, float Minimum, float Maximum)> _resizePanes = [];
+        private readonly Dictionary<DockSplit, float> _startFractions = [];
         private bool _dragging;
         private float _grabOffset;
-        private float _startFraction;
+        private float _startPosition;
+        private SplitView? _resizeRoot;
+        private float[] _resizeSizes = [];
+        private int _resizeBoundary;
 
         public SplitView(DockHost host, DockSplit split)
         {
@@ -154,8 +196,8 @@ public partial class DockHost
 
                 _host.CancelDrag();
                 _dragging = true;
-                _startFraction = split.Fraction;
                 _grabOffset = Axis(_handle.MousePosition) * ScaleFromScreen;
+                BeginResize();
                 SetClass("resizing", true);
             });
             _handle.AddEventListener("onmouseup", e =>
@@ -171,7 +213,9 @@ public partial class DockHost
 
         public Panel Second { get; }
 
-        private float Available => MathF.Max(0, (Axis(Box.Rect.Size) * ScaleFromScreen) - 5);
+        public float DividerSize => Axis(_handle.Box.Rect.Size) * ScaleFromScreen;
+
+        private float Available => MathF.Max(0, (Axis(Box.RectInner.Size) * ScaleFromScreen) - DividerSize);
 
         public void UpdateFraction()
         {
@@ -198,8 +242,7 @@ public partial class DockHost
             }
 
             e.StopPropagation();
-            var fraction = ((Axis(MousePosition) * ScaleFromScreen) - _grabOffset) / Available;
-            _host._layout.SetFraction(_split, Math.Clamp(ClampFraction(fraction), 0.05f, 0.95f));
+            Resize((Axis(ScreenMousePosition) * ScaleFromScreen) - _grabOffset - _startPosition);
         }
 
         protected override void OnEscape(PanelEvent e)
@@ -210,17 +253,117 @@ public partial class DockHost
             }
 
             e.StopPropagation();
-            CancelDragging();
+            CancelResize();
         }
 
         private float Axis(Vector2 value) => _split.Vertical ? value.Y : value.X;
 
         private float ClampFraction(float fraction)
         {
-            var first = Axis(MinimumSize(_split.First));
-            var second = Axis(MinimumSize(_split.Second));
+            var first = _host.SizeLimits(_split.First, _split.Vertical);
+            var second = _host.SizeLimits(_split.Second, _split.Vertical);
             var available = Available;
-            return available < first + second ? first / (first + second) : Math.Clamp(fraction, first / available, 1 - (second / available));
+            if (available < first.Min + second.Min)
+            {
+                return first.Min / (first.Min + second.Min);
+            }
+
+            if (available > first.Max + second.Max)
+            {
+                return first.Max / (first.Max + second.Max);
+            }
+
+            var lower = MathF.Max(first.Min, available - second.Max);
+            var upper = MathF.Min(first.Max, available - second.Min);
+            return Math.Clamp(fraction, lower / available, upper / available);
+        }
+
+        private void BeginResize()
+        {
+            _startPosition = Axis(_handle.Box.Rect.Position) * ScaleFromScreen;
+            _resizeRoot = this;
+            while (_resizeRoot.Parent?.Parent is SplitView parent && parent._split.Vertical == _split.Vertical)
+            {
+                _resizeRoot = parent;
+            }
+
+            _resizePanes.Clear();
+            _startFractions.Clear();
+            CollectResizePanes(_resizeRoot._split);
+            _resizeSizes = new float[_resizePanes.Count];
+        }
+
+        private void CollectResizePanes(DockNode node)
+        {
+            if (node is DockSplit split && split.Vertical == _split.Vertical)
+            {
+                _startFractions.Add(split, split.Fraction);
+                CollectResizePanes(split.First);
+                if (split == _split)
+                {
+                    _resizeBoundary = _resizePanes.Count;
+                }
+
+                CollectResizePanes(split.Second);
+                return;
+            }
+
+            var size = Axis(_host._views[node].Box.Rect.Size) * ScaleFromScreen;
+            var limits = _host.SizeLimits(node, _split.Vertical);
+            _resizePanes.Add((size, MathF.Min(size, limits.Min), MathF.Max(size, limits.Max)));
+        }
+
+        private void Resize(float delta)
+        {
+            for (int i = 0; i < _resizePanes.Count; i++)
+            {
+                _resizeSizes[i] = _resizePanes[i].StartSize;
+            }
+
+            var firstCapacity = ResizeCapacity(0, _resizeBoundary, grow: delta > 0);
+            var secondCapacity = ResizeCapacity(_resizeBoundary, _resizePanes.Count, grow: delta < 0);
+            var movement = MathF.Min(MathF.Abs(delta), MathF.Min(firstCapacity, secondCapacity)) * MathF.Sign(delta);
+            DistributeResize(_resizeBoundary - 1, -1, -1, movement);
+            DistributeResize(_resizeBoundary, _resizePanes.Count, 1, -movement);
+
+            var paneIndex = 0;
+            ApplyResize(_resizeRoot!._split, ref paneIndex);
+        }
+
+        private float ResizeCapacity(int start, int end, bool grow)
+        {
+            float capacity = 0;
+            for (int i = start; i < end; i++)
+            {
+                var pane = _resizePanes[i];
+                capacity += grow ? pane.Maximum - pane.StartSize : pane.StartSize - pane.Minimum;
+            }
+
+            return capacity;
+        }
+
+        private void DistributeResize(int start, int end, int step, float remaining)
+        {
+            for (int i = start; i != end; i += step)
+            {
+                var pane = _resizePanes[i];
+                var change = Math.Clamp(remaining, pane.Minimum - pane.StartSize, pane.Maximum - pane.StartSize);
+                _resizeSizes[i] += change;
+                remaining -= change;
+            }
+        }
+
+        private float ApplyResize(DockNode node, ref int paneIndex)
+        {
+            if (node is not DockSplit split || split.Vertical != _split.Vertical)
+            {
+                return _resizeSizes[paneIndex++];
+            }
+
+            var firstSize = ApplyResize(split.First, ref paneIndex);
+            var secondSize = ApplyResize(split.Second, ref paneIndex);
+            _host._layout.SetFraction(split, Math.Clamp(firstSize / (firstSize + secondSize), 0.05f, 0.95f));
+            return firstSize + secondSize + ((SplitView)_host._views[split]).DividerSize;
         }
 
         private void StopDragging()
@@ -229,10 +372,13 @@ public partial class DockHost
             SetClass("resizing", false);
         }
 
-        private void CancelDragging()
+        private void CancelResize()
         {
             StopDragging();
-            _host._layout.SetFraction(_split, _startFraction);
+            foreach (var (split, fraction) in _startFractions)
+            {
+                _host._layout.SetFraction(split, fraction);
+            }
         }
     }
 }

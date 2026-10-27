@@ -17,6 +17,22 @@ public class LengthReferenceTests
     }
 
     [Fact]
+    public void TheFallbackFontSizeFollowsTheRootScale()
+    {
+        var root = Root(".sized { font-size: 16px; }");
+        var unstyled = root.AddChild<Panel>();
+        var sized = root.AddChild<Panel>("sized");
+        var inheriting = sized.AddChild<Panel>();
+
+        root.Update(new Rect(0, 0, 3840, 2160), 0.016f);
+
+        Assert.Equal(2, root.Scale);
+        Assert.Equal(26, unstyled.ComputedStyle!.FontSize!.Value.Value, 0.01f);
+        Assert.Equal(32, sized.ComputedStyle!.FontSize!.Value.Value, 0.01f);
+        Assert.Equal(32, inheriting.ComputedStyle!.FontSize!.Value.Value, 0.01f);
+    }
+
+    [Fact]
     public void CalcFollowsTheParentsSizeFromTheFirstUpdate()
     {
         var root = Root("""

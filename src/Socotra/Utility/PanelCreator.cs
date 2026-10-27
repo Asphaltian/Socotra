@@ -1,6 +1,9 @@
 namespace Socotra;
 
-/// <summary>Quick ways to add common child panels, through <see cref="Panel.Add"/>. Write extension methods on it to add your own.</summary>
+/// <summary>
+/// <c>PanelCreator</c> gives you quick ways to add common child panels through <see cref="Panel.Add"/>. If you want
+/// your own ones in there, write extension methods on it.
+/// </summary>
 /// <example>
 /// <code>
 /// // Add a title label and an image under this panel

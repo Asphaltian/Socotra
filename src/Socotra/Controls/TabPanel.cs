@@ -1,8 +1,8 @@
 namespace Socotra;
 
 /// <summary>
-/// A <see cref="TabBar"/> with a page under it for each tab; picking a tab shows its page. Pages you're not looking at
-/// keep their state, and closing a tab deletes its page.
+/// <c>TabPanel</c> is a <see cref="TabBar"/> with a page under it for each tab, and picking a tab shows its page. Pages
+/// you're not looking at keep their state. Please note that closing a tab deletes its page.
 /// </summary>
 /// <example>
 /// <code>

@@ -4,10 +4,10 @@ using Socotra.Html;
 namespace Socotra;
 
 /// <summary>
-/// Two panes side by side with a splitter between them that the user drags to share out the space. Put children in
-/// <see cref="Left"/> and <see cref="Right"/>, or in markup give them <c>slot="left"</c> or <c>slot="right"</c>. In
-/// markup it's <c>&lt;split&gt;</c>, and <c>direction="vertical"</c>, <c>min-left</c>, <c>min-right</c>,
-/// <c>default-left</c> and <c>default-right</c> set it up.
+/// <c>SplitContainer</c> is two panes side by side, with a splitter between them that the user can drag to share out
+/// the space. Put your children in <see cref="Left"/> and <see cref="Right"/>, or give them <c>slot="left"</c> or
+/// <c>slot="right"</c> in markup. In markup it's <c>&lt;split&gt;</c>, and you can set it up with
+/// <c>direction="vertical"</c>, <c>min-left</c>, <c>min-right</c>, <c>default-left</c> and <c>default-right</c>.
 /// </summary>
 /// <example>
 /// <code>
@@ -88,7 +88,7 @@ public class SplitContainer : Panel
     [Parameter]
     public float MinimumFractionRight { get; set; } = 0.2f;
 
-    /// <summary>Whether the user is dragging the splitter right now. The container has the <c>dragging</c> class meanwhile.</summary>
+    /// <summary>Returns <c>true</c> while the user is dragging the splitter. The container has the <c>dragging</c> class while that happens.</summary>
     public bool IsDragging { get; protected set; }
 
     /// <summary>Stacks the panes top to bottom instead of side by side. <see cref="Left"/> is then the top pane and <see cref="Right"/> the bottom one.</summary>

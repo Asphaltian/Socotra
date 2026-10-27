@@ -34,8 +34,8 @@ public readonly partial record struct TextStyle
     public TextStyle WithWordSpacing(float spacing) => this with { WordSpacing = spacing };
 
     /// <summary>
-    /// A copy with a drop shadow. Leave the arguments out for a soft, half transparent black shadow 2 pixels down and to the
-    /// right; a <paramref name="blur"/> of 0 gives a hard one.
+    /// Returns a copy with a drop shadow. If you leave the arguments out, you get a soft, half transparent black shadow 2
+    /// pixels down and to the right, and a <paramref name="blur"/> of 0 gives you a hard one.
     /// </summary>
     public TextStyle WithShadow(Color? color = null, float blur = 4, Vector2? offset = null) => this with
     {

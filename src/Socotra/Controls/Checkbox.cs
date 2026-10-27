@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A box the user can tick and untick by clicking it, or with Enter or Space while it has focus. It has the
-/// <c>checked</c> class while ticked, and sends <c>onchange</c> with the new state, then <c>onchecked</c> or <c>onunchecked</c>.
+/// <c>Checkbox</c> is a box that the user can tick and untick by clicking it, or with Enter or Space while it has focus.
+/// It has the <c>checked</c> class while it's ticked, and it sends <c>onchange</c> with the new state, followed by
+/// <c>onchecked</c> or <c>onunchecked</c>.
 /// </summary>
 /// <example>
 /// <code>
@@ -22,6 +23,7 @@ public class Checkbox : Panel
     {
         AddClass("checkbox");
         AcceptsFocus = true;
+        FocusOnClick = false;
         CheckMark = Add.Icon("check", "checkmark");
     }
 
@@ -32,7 +34,7 @@ public class Checkbox : Panel
     /// <summary>The tick shown while the box is checked. It's an <see cref="IconPanel"/> with the <c>checkmark</c> class unless a subclass swaps it.</summary>
     public Panel CheckMark { get; protected set; }
 
-    /// <summary>Whether the box is ticked.</summary>
+    /// <summary>Whether the box is ticked. You can set it yourself too.</summary>
     [Parameter]
     public bool Checked
     {

@@ -3,8 +3,9 @@ using System.Collections.Immutable;
 namespace Socotra;
 
 /// <summary>
-/// A <c>transform</c> value: a list of functions like <c>translate()</c>, <c>rotate3d()</c> or <c>perspective()</c>,
-/// applied in order. Build one in code with the <c>Add</c> methods and give it to <see cref="Styles.Transform"/>.
+/// <c>PanelTransform</c> is a <c>transform</c> value, which is a list of functions like <c>translate()</c>,
+/// <c>rotate3d()</c> or <c>perspective()</c> that get applied in order. You can build one in code with the <c>Add</c>
+/// methods and give it to <see cref="Styles.Transform"/>.
 /// </summary>
 /// <example><code>
 /// // Nudge the panel up a little and tilt it
@@ -42,7 +43,7 @@ public struct PanelTransform : IEquatable<PanelTransform>
         Perspective,
     }
 
-    /// <summary>Whether it has no functions, like <c>transform: none</c>.</summary>
+    /// <summary>Returns <c>true</c> if it has no functions, just like <c>transform: none</c>.</summary>
     public readonly bool IsEmpty => _entries.IsDefaultOrEmpty;
 
     internal readonly ImmutableArray<Entry> Entries => _entries.IsDefault ? [] : _entries;

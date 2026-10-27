@@ -14,13 +14,13 @@ public partial class CanvasPanel
     /// <summary>Called when the selection box is let go, with true if it was canceled by Escape, losing focus or <see cref="BoxSelectionEnabled"/> being turned off.</summary>
     public event Action<bool>? BoxSelectionFinished;
 
-    /// <summary>Lets the user drag a selection box over empty canvas with the left button. Handle <see cref="BoxSelectionChanged"/> to select things. Off by default.</summary>
+    /// <summary>Lets the user drag a selection box over empty canvas with the left button. It's off by default, and you select things by handling <see cref="BoxSelectionChanged"/>.</summary>
     public bool BoxSelectionEnabled { get; set; }
 
     /// <summary>The selection box in canvas coordinates while the user drags one, otherwise null.</summary>
     public Rect? SelectionBox { get; private set; }
 
-    /// <summary>Whether the user is dragging a selection box right now.</summary>
+    /// <summary>Returns <c>true</c> while the user is dragging a selection box.</summary>
     public bool IsBoxSelecting => SelectionBox.HasValue;
 
     private Panel SelectionBoxPanel => _selectionBox ??= AddChild<Panel>("canvas-selection-box");

@@ -27,7 +27,7 @@ PS_INPUT QuadVertex(QuadDraw quad, uint nVertexID)
 {
     PS_INPUT o;
 
-    float2 corner = QuadPositions[nVertexID];
+    float2 corner = QuadPosition(nVertexID);
     float2 vPositionSs = quad.QuadRect.xy + corner * quad.QuadRect.zw;
     float4 vViewport = quad.Viewport;
 

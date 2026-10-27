@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// A strip of <see cref="Tab"/>s, one of them selected. It only picks a tab; use <see cref="TabPanel"/> to show a
-/// page for each one. Left, Right, Home and End move between the tabs, and the strip scrolls when they don't fit.
+/// <c>TabBar</c> is a strip of <see cref="Tab"/>s with one of them selected. Keep in mind that it only picks a tab, so
+/// use a <see cref="TabPanel"/> if you want a page for each one. Left, Right, Home and End move between the tabs, and
+/// the strip scrolls when they don't fit.
 /// </summary>
 /// <example>
 /// <code>

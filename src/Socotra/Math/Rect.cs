@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace Socotra;
 
-/// <summary>A rectangle in pixels, like a panel's box on screen. Its edges run straight across and down.</summary>
+/// <summary><c>Rect</c> is a rectangle in pixels, like a panel's box on the screen. Its edges always run straight across and down.</summary>
 [StructLayout(LayoutKind.Sequential)]
 public struct Rect : IEquatable<Rect>
 {
@@ -76,15 +76,18 @@ public struct Rect : IEquatable<Rect>
     /// <summary>The bottom right corner.</summary>
     public readonly Vector2 BottomRight => new(Right, Bottom);
 
-    /// <summary>Whether <paramref name="point"/> is inside the rectangle.</summary>
+    /// <summary>Returns <c>true</c> if <paramref name="point"/> is inside the rectangle.</summary>
     public readonly bool IsInside(Vector2 point) => point.X >= Left && point.X < Right && point.Y >= Top && point.Y < Bottom;
 
-    /// <summary>Whether this overlaps <paramref name="other"/> at all. Pass <paramref name="fully"/> as true to ask whether it's entirely inside instead.</summary>
+    /// <summary>
+    /// Returns <c>true</c> if this overlaps <paramref name="other"/> at all. Pass <paramref name="fully"/> as <c>true</c> if
+    /// you want to know whether it's entirely inside instead.
+    /// </summary>
     public readonly bool IsInside(Rect other, bool fully = false) => fully
         ? Left >= other.Left && Top >= other.Top && Right <= other.Right && Bottom <= other.Bottom
         : Left < other.Right && Right > other.Left && Top < other.Bottom && Bottom > other.Top;
 
-    /// <summary>Whether the rectangles share any area. Touching edges don't count.</summary>
+    /// <summary>Returns <c>true</c> if the rectangles share any area. Keep in mind that edges that only touch don't count.</summary>
     public readonly bool Overlaps(Rect other) => Left < other.Right && Right > other.Left && Top < other.Bottom && Bottom > other.Top;
 
     /// <summary>The smallest rectangle with both points on its corners.</summary>

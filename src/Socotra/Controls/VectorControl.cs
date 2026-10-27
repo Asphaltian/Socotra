@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Components;
 namespace Socotra;
 
 /// <summary>
-/// Edits a <see cref="Vector2"/>, <see cref="Vector3"/> or <see cref="Vector4"/>: one <see cref="NumberEntry"/> per
-/// component, each with a colored letter in front, X red, Y green, Z blue and W yellow. The letters can be dragged
-/// sideways to change the numbers. When the user changes one, it sends <c>onchange</c>.
+/// <c>VectorControl</c> lets the user edit a <see cref="Vector2"/>, <see cref="Vector3"/> or <see cref="Vector4"/>, with
+/// one <see cref="NumberEntry"/> for each component. Each one has a colored letter in front of it: X is red, Y is green,
+/// Z is blue and W is yellow. The user can drag the letters sideways to change the numbers. It sends <c>onchange</c>
+/// when the user changes one.
 /// </summary>
 /// <example>
 /// <code>

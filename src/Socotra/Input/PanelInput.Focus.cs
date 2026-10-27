@@ -22,6 +22,22 @@ internal sealed partial class PanelInput
         return false;
     }
 
+    public void SetFocusFromClick(Panel panel)
+    {
+        var input = this;
+        for (Panel? target = panel; target is not null; target = target.FocusOwner)
+        {
+            input = target.FindRootPanel()?.Input ?? input;
+            if (target.AcceptsFocus && target.FocusOnClick)
+            {
+                input.SetFocus(target);
+                return;
+            }
+        }
+
+        input.ClearFocus();
+    }
+
     public bool ClearFocus(Panel panel)
     {
         _nextFocus = null;

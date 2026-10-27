@@ -93,9 +93,20 @@ public readonly ref partial struct Painter
 
         if (distance + cutoutRadius <= radius)
         {
+            var context = ActiveContext;
+            if (!context.State.HasArea || context.State.Opacity == 0)
+            {
+                return;
+            }
+
+            if (Stroke.Alignment != Stroke.StrokeAlignment.Center && !float.IsFinite(Stroke.Width * 2))
+            {
+                return;
+            }
+
             shape.Circle.X = center.X; shape.Circle.Y = center.Y;
             shape.Polygon01 = new Vector4(cutout.X, cutout.Y, 0, 0);
-            var mask = new Path.Data(shape, []);
+            Path.AlignmentMask? mask = Stroke.Alignment == Stroke.StrokeAlignment.Center ? null : new(context.Batcher.AddShape(shape), null);
             Path.DrawArc(ActiveContext, center, radius, 0, 360, Stroke, mask);
             Path.DrawArc(ActiveContext, cutout, cutoutRadius, 0, 360, Stroke, mask);
             return;
@@ -155,7 +166,7 @@ public readonly ref partial struct Painter
             return;
         }
 
-        var desc = Fill.CreateDescriptor(bounds, ActiveContext);
+        Fill.CreateDescriptor(bounds, ActiveContext, out var desc);
         desc.BorderShapeData = shape;
         Add(ActiveContext, desc);
     }

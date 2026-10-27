@@ -1,8 +1,8 @@
 namespace Socotra;
 
 /// <summary>
-/// A list of labeled controls, one <see cref="Field"/> per row, with optional headers between groups of rows. When a
-/// control in it sends <c>onchange</c>, the form sends <c>form.changed</c> instead.
+/// <c>Form</c> is a list of labeled controls, with one <see cref="Field"/> per row and optional headers between groups of
+/// rows. When a control inside it sends <c>onchange</c>, the form sends <c>form.changed</c> instead.
 /// </summary>
 /// <example>
 /// <code>
